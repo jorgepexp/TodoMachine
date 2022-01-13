@@ -1,0 +1,22 @@
+{
+  "name": "gestion-tareas",
+  "version": "1.0.0",
+  "description": "## Funcionalidades Fase 1",
+  "main": "index.js",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jorgepexp/gestion-tareas.git"
+  },
+  "author": "Jorge P.",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jorgepexp/gestion-tareas/issues"
+  },
+  "homepage": "https://github.com/jorgepexp/gestion-tareas#readme",
+  "devDependencies": {
+    "@vue/cli": "^4.5.13",
+    "webpack": "^5.39.1"
+  },
+  "dependencies": {}
+}
