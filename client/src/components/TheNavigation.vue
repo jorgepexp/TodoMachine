@@ -10,7 +10,7 @@
       />
 
       <v-toolbar-title class="nav-title">
-        <router-link to="/todomachine" class="text-decoration-none">
+        <router-link to="/todomachine">
           <span class="font-weight-medium white--text"> TODO MACHINE</span>
         </router-link>
       </v-toolbar-title>
@@ -127,7 +127,7 @@ export default {
         .catch(error => console.error(`Algo ha ido mal: ${error}`));
     },
     toggleDarkTheme() {
-      if (this.$store.state.darkTheme) {
+      if (!this.$store.state.darkTheme) {
         this.$root.$el.setAttribute('color-scheme', 'dark');
         this.$store.commit('toggleDarkTheme');
         return;
