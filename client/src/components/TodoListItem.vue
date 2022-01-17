@@ -97,15 +97,15 @@ export default {
   methods: {
     deleteTodo() {
       deleteTodo(this.boardID, this.$parent.id, this.id).then(response => {
-        // TODO Controlar excepciones
-        console.log(response);
-        this.editItemOverlay = false;
-        this.$store.dispatch('fetchBoards');
+        if (response.status === 200 && !response.error) {
+          this.editItemOverlay = false;
+          this.$store.dispatch('fetchBoards');
+          return;
+        }
+        console.error(response);
       });
     },
     onDragStart(ev) {
-      ev.dataTransfer.dropEffect = 'move';
-      ev.dataTransfer.effectAllowed = 'move';
       ev.dataTransfer.setData(
         'todo-data',
         JSON.stringify({
@@ -115,10 +115,11 @@ export default {
           title: this.title,
         })
       );
+      ev.dataTransfer.dropEffect = 'move';
+      ev.dataTransfer.effectAllowed = 'move';
     },
     async onDrop(ev) {
       const draggedItemData = JSON.parse(ev.dataTransfer.getData('todo-data'));
-
       const dropZoneID = this.$parent.id;
 
       // Si el ID es el mismo es que han dropeado la tarea en su misma posición
@@ -126,9 +127,10 @@ export default {
         this.id == draggedItemData.id &&
         dropZoneID == draggedItemData.parentID
       ) {
-        return console.log('Item dropeado en sí mismo');
+        return;
       }
 
+      // Al moverlo a diferente lista se inserta en última posición
       if (dropZoneID != draggedItemData.parentID) {
         const todoItem = {
           title: draggedItemData.title,
@@ -136,22 +138,18 @@ export default {
           index: this.$parent.autoIncrementIndex(),
         };
 
-        await addTodoItems(this.boardID, parseInt(dropZoneID), [todoItem]).then(
-          response => {
-            console.log(response);
-          }
-        );
+        await addTodoItems(this.boardID, parseInt(dropZoneID), [
+          todoItem,
+        ]).catch(error => console.error(error));
 
         await deleteTodo(
           this.boardID,
           parseInt(draggedItemData.parentID),
           parseInt(draggedItemData.id)
-        ).then(response => {
-          console.log(response);
-        });
+        ).catch(error => console.error(error));
 
         await this.$store.dispatch('fetchBoards');
-        return console.log('Dropeado en distinta lista');
+        return;
       }
 
       let firstRequest = editTodo(
@@ -160,6 +158,7 @@ export default {
         parseInt(draggedItemData.id),
         this.index
       );
+
       let secondRequest = editTodo(
         this.boardID,
         dropZoneID,
@@ -167,8 +166,9 @@ export default {
         parseInt(draggedItemData.index)
       );
 
-      // TODO Controlar las excepciones
-      await Promise.all([firstRequest, secondRequest]);
+      await Promise.all([firstRequest, secondRequest]).catch(error =>
+        console.error(error)
+      );
       this.$store.dispatch('fetchBoards');
     },
   },

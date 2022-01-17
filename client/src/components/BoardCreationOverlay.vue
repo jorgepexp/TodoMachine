@@ -59,15 +59,17 @@ export default {
   methods: {
     async createNewBoard() {
       if (!this.$refs.form.validate()) {
-        this.valid = false;
         return;
       }
 
       await postBoard(this.$store.state.user.id, this.boardName).then(
         response => {
-          //TODO
-          console.log(response);
-          this.$store.dispatch('fetchBoards');
+          if (response.status === 201) {
+            this.$store.dispatch('fetchBoards');
+          }
+          if (response.status === 400) {
+            console.error(response);
+          }
         }
       );
 

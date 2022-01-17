@@ -186,8 +186,9 @@ export default {
       let firstRequest = editList(this.boardID, parseInt(listID), this.index);
       let secondRequest = editList(this.boardID, this.id, parseInt(listIndex));
 
-      // TODO Controlar las excepciones
-      await Promise.all([firstRequest, secondRequest]);
+      await Promise.all([firstRequest, secondRequest]).catch(error =>
+        console.error(error)
+      );
       this.$store.dispatch('fetchBoards');
     },
     autoIncrementID() {
