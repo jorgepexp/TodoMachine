@@ -60,7 +60,6 @@ export const editTodo = (boardID, listID, todoID, index) => {
 };
 
 export const deleteTodo = (boardID, listID, todoID) => {
-  console.log(boardID, listID, todoID);
   return axios.delete('/boards/todos', {
     data: {
       boardID,
