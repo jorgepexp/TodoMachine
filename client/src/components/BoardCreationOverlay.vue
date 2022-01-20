@@ -1,13 +1,11 @@
 <template>
   <div class="text-center">
-    <v-dialog width="500" v-model="dialog">
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn text v-bind="attrs" v-on="on" ref="btn" class="addBoardBtn">
-          <v-icon large @focusout="prueba">mdi-plus-box</v-icon>
-        </v-btn>
-      </template>
+    <v-btn @click.stop="dialog = true" text class="addBoardBtn">
+      <v-icon large>mdi-plus-box</v-icon>
+    </v-btn>
 
-      <v-card class="rounded-lg" @focusout="reset">
+    <v-dialog width="500" v-model="dialog">
+      <v-card class="rounded-lg" @focusout="$refs.form.reset()">
         <v-card-title class="text-h6 blue rounded-t">
           Crear nuevo tablero
         </v-card-title>
@@ -82,12 +80,6 @@ export default {
       });
       this.dialog = false;
       this.boardName = '';
-    },
-    reset() {
-      this.$refs.form.reset();
-    },
-    prueba() {
-      console.log('Holu');
     },
   },
 };

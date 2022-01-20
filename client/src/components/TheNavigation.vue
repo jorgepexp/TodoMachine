@@ -29,7 +29,7 @@
       </router-link>
 
       <v-spacer></v-spacer>
-      <BoardCreationOverlay v-if="isUserLogged"></BoardCreationOverlay>
+      <BoardCreationOverlay v-if="isUserLogged" />
       <v-btn text @click="toggleDarkTheme">
         <v-icon>
           {{

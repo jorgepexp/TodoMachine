@@ -21,18 +21,20 @@ const routes = [
   },
   {
     path: '/todomachine/registro',
+    name: 'register',
     component: () => import('../components/RegisterForm.vue'),
   },
   {
     path: '/todomachine/:username/:id',
     name: 'board',
-    component: () => import('../components/Board.vue'),
+    component: () => import('../views/UserBoardView.vue'),
     props: true,
   },
+  // TODO Crear función para checkar :username (beforeEnter). Si no existe redirigir a 404
   {
     path: '/todomachine/:username',
     name: 'mainBoard',
-    component: () => import('../views/UserBoardView.vue'),
+    component: () => import('../views/AllBoardsView.vue'),
     props: true,
     meta: {
       requiredAuth: true,

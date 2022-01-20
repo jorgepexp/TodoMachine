@@ -1,112 +1,200 @@
 <template>
-  <div id="main-board">
-    <v-card max-width="225" class="home-left-sidebar-container">
-      <v-list nav class="border-shadow-0">
-        <v-list-item-group v-model="selectedItem">
-          <v-list-item
-            v-for="(item, i) in leftMenuItems"
-            :key="i"
-            class="pr-16"
-          >
-            <v-list-item-icon>
-              <v-icon v-text="item.icon"></v-icon>
-            </v-list-item-icon>
+  <div class="board-container" @dragover.prevent @dragenter.prevent>
+    <todo-list
+      v-for="list in getListById"
+      :todos="list.todos"
+      :name="list.name"
+      :id="list.id"
+      :index="list.index"
+      :key="list.id"
+    >
+      <todo-item
+        v-for="item in list.todos"
+        :todo="item"
+        :title="item.title"
+        :id="item.id"
+        :index="item.index"
+        :key="item.id"
+      >
+        {{ item.title }}
+      </todo-item>
+    </todo-list>
 
-            <v-list-item-content>
-              <v-list-item-title v-text="item.text"></v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list-item-group>
-      </v-list>
-    </v-card>
+    <v-form
+      v-if="showTodoListComposer"
+      ref="addNewListForm"
+      v-model="valid"
+      class="add-todo-list-controls"
+      @submit.prevent="addTodoList(newListTitle)"
+    >
+      <v-text-field
+        v-model="newListTitle"
+        class="new-list-title"
+        :dark="this.$store.state.darkTheme"
+        :rules="titleRules"
+        :counter="30"
+        autofocus
+        outlined
+        label="Título de la lista"
+      ></v-text-field>
 
-    <v-list class="available-boards">
-      <v-list-item>
-        <v-list-item-title>Tableros disponibles</v-list-item-title>
-        <v-list-item v-for="board in userBoards" :key="board._id">
-          <router-link
-            :to="{
-              name: 'board',
-              params: {
-                username: $store.state.user.username,
-                id: board.name,
-              },
-            }"
-          >
-            {{ board.name }}
-          </router-link>
-        </v-list-item>
-        <!-- <v-list-item-icon>
-                <v-icon>mdi-star</v-icon>
-              </v-list-item-icon> -->
-      </v-list-item>
-    </v-list>
+      <!-- TODO Conseguir que @blur funcione -->
+      <div>
+        <v-btn
+          type="submit"
+          class="text-capitalize add-list-btn"
+          color="#1976D2"
+          >Añadir lista</v-btn
+        >
+        <v-icon class="close-btn" @click="showTodoListComposer = false"
+          >mdi-close</v-icon
+        >
+      </div>
+    </v-form>
+
+    <div v-if="!showTodoListComposer" class="add-todo-list">
+      <v-btn @click="showTodoListComposer = true"
+        >+ Añadir {{ !getListById.length ? 'nueva' : 'otra' }} lista</v-btn
+      >
+    </div>
   </div>
 </template>
 
 <script>
+import TodoList from '../components/TodoList.vue';
+import TodoItem from '../components/TodoListItem.vue';
+import * as api from '@/api.js';
+
 export default {
   name: 'UserBoardView',
-  components: {},
+  components: {
+    TodoList,
+    TodoItem,
+  },
+  props: {
+    // Actualmente ID es una string (nombre del tablero)
+    id: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
-      selectedItem: 0,
-      //TODO: Añadir funcionalidad a cada uno de los botones
-      // ? Cada objeto tendrá una referencia a una función
-      leftMenuItems: [
-        {
-          icon: 'mdi-bulletin-board',
-          text: 'Tableros',
-        },
-        {
-          icon: 'mdi-view-dashboard',
-          text: 'Plantillas',
-        },
-        {
-          icon: 'mdi-home-analytics',
-          text: 'Inicio',
-        },
-      ],
+      todoLists: [],
+      newListTitle: '',
+      showTodoListComposer: false,
+      valid: true,
+      titleRules: [v => !!v, v => v.length <= 30],
     };
   },
   computed: {
-    userBoards() {
-      return this.$store.state.user.boards;
+    getListById() {
+      let board = this.$store.state.user.boards.find(
+        board => board.name === this.id
+      );
+      // Devolvemos el tablero ordenado por índice
+      return board ? board.todo_lists.sort((a, b) => a.index - b.index) : [];
+    },
+  },
+  methods: {
+    prueba(ev) {
+      console.log('Funciona blur');
+      console.log(ev);
+    },
+    async addTodoList(title) {
+      if (!this.$refs.addNewListForm.validate()) {
+        return;
+      }
+
+      let boardID = this.$store.getters.getBoardByName(this.id)._id;
+
+      await api
+        .postTodoList(
+          boardID,
+          this.autoIncrementID(),
+          title,
+          this.autoIncrementIndex()
+        )
+        .then(response => {
+          if (response.status === 400) {
+            return console.log(response.data);
+          }
+          if (response.status === 201) {
+            this.$store.dispatch('fetchBoards');
+            console.log(response.data.message);
+          }
+        });
+
+      this.showTodoListComposer = false;
+      this.newListTitle = '';
+    },
+    autoIncrementID() {
+      const maxID =
+        this.getListById.length === 0
+          ? 0
+          : this.getListById.reduce((prev, curr) =>
+              prev.id > curr.id ? prev : curr
+            ).id + 1;
+
+      return maxID;
+    },
+    autoIncrementIndex() {
+      const maxIndex =
+        this.getListById.length === 0
+          ? 0
+          : this.getListById[this.getListById.length - 1].index + 1;
+
+      return maxIndex;
     },
   },
 };
 </script>
 
-<style lang="scss">
-#main-board {
-  min-height: 100%;
+<style lang="scss" scoped>
+//Contenedor principal del tablero
+.board-container {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: flex-start;
+
+  height: 90vh;
+  width: auto;
   background: var(--surface1);
-  display: grid;
-  grid-template-columns: 20% 1fr;
+  overflow-x: scroll;
 
-  .home-left-sidebar-container {
-    background: var(--surface1);
-    color: var(--text1);
+  padding: 2rem;
 
-    .v-list {
-      background: var(--surface2);
+  .v-form {
+    min-width: 250px;
 
-      .v-list-item {
-        color: var(--text1);
-      }
+    .v-input {
+      height: 70px;
+    }
+
+    .add-list-btn {
+      color: var(--text1-dark);
     }
   }
 
-  .available-boards {
-    background: inherit;
+  .add-todo-list .v-btn {
+    background: var(--surface2);
+    color: var(--text1);
+  }
 
-    width: 900px;
-    min-height: 400px;
+  .new-list-title {
+    input {
+      color: red;
+    }
+  }
 
-    overflow: auto;
+  .close-btn {
+    font-size: 28px;
 
-    .v-list-item__title {
-      color: var(--text1);
+    cursor: pointer;
+    margin-left: 6px;
+
+    &:hover {
+      color: var(--text2);
     }
   }
 }

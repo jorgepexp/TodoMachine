@@ -45,9 +45,15 @@
             <v-list-item @click="deleteList">
               <v-list-item-title>Borrar lista</v-list-item-title>
             </v-list-item>
-            <v-list-item>
-              <v-list-item-title>Cambiar propietario</v-list-item-title>
+
+            <v-list-item @click="moveList">
+              <v-list-item-title>Mover lista</v-list-item-title>
             </v-list-item>
+            
+            <ListOwnerChangeOverlay />
+            <!-- <v-list-item @click="changeOwnerOverlay = !changeOwnerOverlay">
+              <v-list-item-title>Cambiar propietario</v-list-item-title>
+            </v-list-item> -->
           </v-list>
         </v-menu>
       </div>
@@ -83,8 +89,12 @@
 
 <script>
 import { addTodoItems, deleteList, editList } from '@/api.js';
+import ListOwnerChangeOverlay from './ListOwnerChangeOverlay.vue';
 export default {
   name: 'TodoList',
+  components: {
+    ListOwnerChangeOverlay,
+  },
   props: {
     todos: {
       type: Array,
@@ -110,6 +120,7 @@ export default {
       hideAddTodoComposer: true,
       isActionOpen: false,
       listName: this.name,
+      changeOwnerOverlay: false,
     };
   },
   computed: {
@@ -147,7 +158,8 @@ export default {
       deleteList(this.boardID, this.id)
         .then(response => {
           if (response.status === 400) {
-            return console.log('No se ha podido eliminar la lista');
+            console.error(response.error);
+            return;
           }
           if (response.status === 200) {
             this.$store.dispatch('fetchBoards');
@@ -155,6 +167,13 @@ export default {
         })
         .catch(error => console.error(error));
     },
+    changeListOwner() {
+      // deleteList(this.boardID, this.id).catch(error => console.error(error));
+
+      this.$store.dispatch('fetchBoards');
+    },
+    // TODO
+    moveList() {},
     editListName() {
       editList(this.boardID, this.id, undefined, this.listName.trim())
         .then(response => {
