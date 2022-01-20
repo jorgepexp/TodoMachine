@@ -1,6 +1,11 @@
 import axios from 'axios';
 
 // * Llamadas al servidor. Puerto y url por defecto definidos en ./js/axiosConfig
+// Usuario
+export const getUserByUsername = username => {
+  return axios.get(`/user/?username=${username}`);
+};
+
 // Tablones
 export const getBoardsById = ownerID => {
   return axios.get(`/boards/${ownerID}`);
@@ -14,12 +19,13 @@ export const postBoard = (ownerID, name) => {
 };
 
 // Listas
-export const postTodoList = (boardID, listID, name, index) => {
+export const postTodoList = (boardID, listID, name, index, todos) => {
   return axios.post('/boards/list', {
     boardID,
     listID,
     name,
     index,
+    todos,
   });
 };
 
@@ -41,7 +47,7 @@ export const deleteList = (boardID, listID) => {
   });
 };
 
-// Todo's
+// To do's
 export const addTodoItems = (boardID, listID, todos) => {
   return axios.post('/boards/todos', {
     boardID,

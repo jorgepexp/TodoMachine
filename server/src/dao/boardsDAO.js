@@ -51,16 +51,16 @@ export default class BoardsDAO {
   }
 
   // TODO Comprobar que el ID de la lista no esté siendo utilizado
-  static async postList(listData = null) {
+  static async postList(listData) {
     try {
-      let { boardID, listID, name, index } = listData;
-
-      console.log(index);
+      let { boardID, listID, name, index, todos } = listData;
 
       boardID = new ObjectId(boardID);
       let query = { _id: boardID };
 
-      const document = { id: listID, name, todos: [], index };
+      todos = todos ?? [];
+
+      const document = { id: listID, name, todos, index };
 
       const result = await boards.updateOne(query, {
         $push: { todo_lists: document },
@@ -133,7 +133,6 @@ export default class BoardsDAO {
     }
   }
 
-  //TODO Que se pueda editar diferentes datos desde el mismo método
   static async editTodo(boardID, listID, todoID, index) {
     try {
       boardID = new ObjectId(boardID);

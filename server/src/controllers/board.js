@@ -4,6 +4,12 @@ class TablonController {
   // Métodos de tablero
   async getBoard(req, res) {
     let id = req.params.id;
+    if (!id) {
+      return res.status(400).json({
+        message: 'Datos para obtener tablero incompletos',
+        error: true,
+      });
+    }
     let boards;
     try {
       boards = await boardsDAO.getBoards(id);
@@ -42,7 +48,7 @@ class TablonController {
   // Métodos de lista
   async postList(req, res) {
     try {
-      let { boardID, listID, name, index } = req.body;
+      let { boardID, listID, name, index, todos = null } = req.body;
 
       if (
         isNaN(parseFloat(listID)) ||
@@ -56,7 +62,7 @@ class TablonController {
         });
       }
 
-      let listData = { boardID, listID, name, index };
+      let listData = { boardID, listID, name, index, todos };
 
       let modifiedCount = await boardsDAO.postList(listData);
       if (modifiedCount === 0) {
