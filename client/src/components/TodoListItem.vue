@@ -17,7 +17,9 @@
         {{ title }}
       </div>
     </div>
-
+    <!-- TODO Añadir botón de cerrar -->
+    <!-- TODO Poder editar título de la tarea -->
+    <!-- TODO Poder añadir descripción de la tarea -->
     <v-dialog
       v-model="editItemOverlay"
       max-width="500"
@@ -25,7 +27,7 @@
     >
       <v-card class="mx-auto px-4 py-4" min-width="500">
         <v-card-title class="px-0 py-0">
-          <span class="text-h5">{{ title }}</span>
+          <span class="text-h5 font-weight-bold">{{ title }}</span>
         </v-card-title>
         <div class="text-subtitle-1">
           en la lista
@@ -34,15 +36,9 @@
         <v-textarea
           clearable
           clear-icon="mdi-close-circle"
-          label="Text"
+          label="Descripción de la tarea..."
         ></v-textarea>
-        <!-- <v-textarea
-          name="todo-description"
-          label="Descripción de la tarea"
-          clearable
-          clear-icon="mdi-close-circle"
-        >
-        </v-textarea> -->
+
         <div class="d-flex flex-row-reverse">
           <v-btn
             class="white--text"
@@ -52,7 +48,7 @@
             Hecho
           </v-btn>
           <v-btn class="white--text" color="error" plain @click="deleteTodo">
-            Eliminar
+            Eliminar tarea
           </v-btn>
         </div>
       </v-card>

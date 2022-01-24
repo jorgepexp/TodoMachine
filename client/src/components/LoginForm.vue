@@ -29,12 +29,12 @@
 
       <div class="button-container">
         <v-btn depressed color="error" @click="reset">Reset</v-btn>
-        <v-btn depressed color="success" @click="validate"
+        <v-btn depressed color="success" :disabled="!valid" @click="validate"
           >Iniciar sesión</v-btn
         >
       </div>
       <a
-        ><router-link to="/registro"
+        ><router-link to="/todomachine/registro"
           >¿Todavía no estás registrado?</router-link
         ></a
       >
@@ -148,10 +148,6 @@ h2 {
   justify-content: center;
 
   margin: 1em;
-  //  nested router-link
-  a {
-    text-decoration: none;
-  }
 }
 
 .error-container {

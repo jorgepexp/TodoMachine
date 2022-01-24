@@ -35,7 +35,7 @@
               },
             }"
           >
-            {{ board.name }}
+            <span>{{ board.name }}</span>
           </router-link>
         </div>
       </div>
@@ -133,21 +133,42 @@ export default {
       div {
         overflow: hidden;
       }
-      // TODO Añadir efecto de hover y active (outlined)
+
       a {
         display: block;
-        width: 150px;
-        height: 80px;
+        height: 85px;
+        width: 130px;
+        transition: all 0.3s ease-in-out;
 
         background: lightskyblue;
         color: var(--text1);
         border-radius: 5px;
 
         padding: 0.6rem;
-        // &:hover {
-        //   transform: scale(1.1);
-        // }
+
+        &:hover {
+          // border: 2px solid darkblue;
+          animation: gelatine 0.6s ease-in-out;
+        }
+        // TODO Pensar en esto
+        &::before:hover {
+        }
       }
+    }
+  }
+  @keyframes gelatine {
+    from,
+    to {
+      transform: scale(1, 1);
+    }
+    25% {
+      transform: scale(0.9, 1.1);
+    }
+    50% {
+      transform: scale(1.1, 0.9);
+    }
+    75% {
+      transform: scale(0.95, 1.05);
     }
   }
 

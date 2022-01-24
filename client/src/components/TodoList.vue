@@ -9,22 +9,22 @@
     >
       <div class="task-name">
         <p v-if="!editNameComposer" class="mb-0">{{ listName }}</p>
-
         <v-textarea
           v-if="editNameComposer"
+          class="edit-name-composer"
           v-model="listName"
           @keydown.enter.exact.prevent="editListName"
-          @blur="editNameComposer = false"
+          @blur="editListName"
           autofocus
           auto-grow
-          filled
           outlined
+          dense
           rows="1"
           :placeholder="listName"
           background-color="white"
         ></v-textarea>
-        <!-- height="20" -->
       </div>
+
       <div @click="isActionOpen = !isActionOpen" class="list-header-extras">
         <v-menu offset-y>
           <template v-slot:activator="{ on, attrs }">
@@ -46,18 +46,22 @@
               <v-list-item-title>Borrar lista</v-list-item-title>
             </v-list-item>
 
-            <v-list-item @click="moveList">
+            <v-list-item>
               <v-list-item-title>Mover lista</v-list-item-title>
             </v-list-item>
-            
-            <ListOwnerChangeOverlay />
-            <!-- <v-list-item @click="changeOwnerOverlay = !changeOwnerOverlay">
-              <v-list-item-title>Cambiar propietario</v-list-item-title>
-            </v-list-item> -->
+
+            <ListOwnerChangeOverlay
+              :listId="id"
+              :boardId="boardID"
+              :name="name"
+              :index="index"
+              :todos="todos"
+            />
           </v-list>
         </v-menu>
       </div>
     </div>
+    <!-- Slot para los TodoItem -->
     <slot></slot>
 
     <v-btn
@@ -83,7 +87,6 @@
         </button>
       </div>
     </div>
-    <!-- TODO Crear una transición -->
   </div>
 </template>
 
@@ -167,13 +170,6 @@ export default {
         })
         .catch(error => console.error(error));
     },
-    changeListOwner() {
-      // deleteList(this.boardID, this.id).catch(error => console.error(error));
-
-      this.$store.dispatch('fetchBoards');
-    },
-    // TODO
-    moveList() {},
     editListName() {
       editList(this.boardID, this.id, undefined, this.listName.trim())
         .then(response => {
@@ -259,7 +255,7 @@ export default {
       overflow-wrap: break-word;
 
       margin-right: auto;
-      padding: 4px 8px;
+      padding: 4px 6px;
     }
 
     .list-header-extras {

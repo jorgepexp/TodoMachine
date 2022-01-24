@@ -2,7 +2,7 @@
   <div class="register-form">
     <!-- TODO Añadir mejores estilos -->
     <h2>Formulario de registro</h2>
-    <v-form ref="form" lazy-validation>
+    <v-form ref="form" :valid="valid" lazy-validation>
       <v-text-field
         v-model="username"
         :rules="usernameRules"
@@ -22,11 +22,11 @@
       >
       </v-text-field>
       <div class="button-container">
+        <v-btn color="error" @click="this.$refs.form.reset()"> Reset </v-btn>
+
         <v-btn :disabled="!valid" color="success" @click="validate">
           Enviar
         </v-btn>
-
-        <v-btn color="error" @click="this.$refs.form.reset()"> Reset </v-btn>
       </div>
     </v-form>
   </div>
@@ -65,7 +65,8 @@ export default {
 
     sendForm() {
       try {
-        //TODO Si nos pasan un array de usuario vacío, mostrar error por consola
+        //TODO Validar
+        //TODO Controlar HTTP codes
         api
           .register(this.username, this.password)
           .then(response => response)
@@ -106,9 +107,5 @@ h2 {
   justify-content: center;
 
   margin: 1em;
-  //  router-link nesteado
-  a {
-    text-decoration: none;
-  }
 }
 </style>
