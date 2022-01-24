@@ -48,10 +48,10 @@
 
         <v-select
           v-if="foundUserBoards"
-          v-model="selectedBoardId"
+          v-model="selectedBoard"
           :items="foundUserBoards"
           item-text="name"
-          item-value="_id"
+          return-object
           label="Selecciona un tablero"
           dense
           solo
@@ -61,7 +61,7 @@
         <div class="d-flex justify-end">
           <v-btn
             v-if="foundUserBoards"
-            :disabled="!selectedBoardId"
+            :disabled="!selectedBoard"
             @click="changeListOwner"
             class="mb-4"
             color="primary"
@@ -114,7 +114,7 @@ export default {
       valid: true,
       isUserFound: false,
       foundUserBoards: null,
-      selectedBoardId: '',
+      selectedBoard: '',
       loading: false,
     };
   },
@@ -129,6 +129,7 @@ export default {
         return;
       }
       this.loading = true;
+
       getUserByUsername(this.username).then(response => {
         if (!response.data.users.length) {
           this.foundUserBoards = false;
@@ -147,30 +148,44 @@ export default {
       });
     },
     async changeListOwner() {
-      // TODO Validar
-      // TODO El listID en la inserción debe calcularse dependiendo del índice de la última posición del tablero destino
       await postTodoList(
-        this.selectedBoardId,
-        this.listId,
+        this.selectedBoard._id,
+        this.getNewId(),
         this.name,
-        this.index,
+        this.getNewIndex(),
         this.todos
-      )
-        .then(response => console.log(response))
-        .catch(error => console.log(error));
+      ).catch(error => console.error(error));
 
-      await deleteList(this.boardId, this.listId)
-        .then(response => console.log(response))
-        .catch(error => console.log(error));
+      await deleteList(this.boardId, this.listId).catch(error =>
+        console.error(error)
+      );
 
       this.$store.dispatch('fetchBoards');
+    },
+    getNewId() {
+      const targetBoardTodos = this.selectedBoard.todo_lists;
+      const newId =
+        targetBoardTodos.length === 0
+          ? 0
+          : targetBoardTodos.reduce((prev, curr) =>
+              prev.id > curr.id ? prev : curr
+            ).id + 1;
+      return newId;
+    },
+    getNewIndex() {
+      const targetBoardTodos = this.selectedBoard.todo_lists;
+      const newIndex =
+        targetBoardTodos.length === 0
+          ? 0
+          : targetBoardTodos[targetBoardTodos.length - 1].index + 1;
+      return newIndex;
     },
     reset() {
       // Al no destruirse por completo, el componente mantiene su data() anterior si no se resetea
       this.$refs.form.reset();
       this.isUserFound = false;
       this.foundUserBoards = null;
-      this.selectedBoardId = '';
+      this.selectedBoard = '';
     },
   },
 };

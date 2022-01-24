@@ -33,7 +33,7 @@
       <v-btn text @click="toggleDarkTheme">
         <v-icon>
           {{
-            darkTheme ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'
+            !darkTheme ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'
           }}
         </v-icon>
       </v-btn>

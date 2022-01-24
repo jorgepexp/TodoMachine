@@ -20,15 +20,20 @@
     <!-- TODO Añadir botón de cerrar -->
     <!-- TODO Poder editar título de la tarea -->
     <!-- TODO Poder añadir descripción de la tarea -->
+    <!-- TODO Se podría trasladar a componente -->
     <v-dialog
       v-model="editItemOverlay"
       max-width="500"
       transition="dialog-bottom-transition"
     >
       <v-card class="mx-auto px-4 py-4" min-width="500">
-        <v-card-title class="px-0 py-0">
+        <v-card-title class="px-0 py-0 d-flex align-center">
           <span class="text-h5 font-weight-bold">{{ title }}</span>
+          <v-icon>
+            mdi-window-close
+          </v-icon>
         </v-card-title>
+
         <div class="text-subtitle-1">
           en la lista
           <span class="text-decoration-underline">{{ this.$parent.name }}</span>

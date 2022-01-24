@@ -46,7 +46,7 @@
               <v-list-item-title>Borrar lista</v-list-item-title>
             </v-list-item>
 
-            <v-list-item>
+            <v-list-item @click="transferList">
               <v-list-item-title>Mover lista</v-list-item-title>
             </v-list-item>
 
@@ -74,9 +74,10 @@
     </v-btn>
 
     <div class="item-composer" v-show="!hideAddTodoComposer">
+      <!-- // TODO No funciona autofocus -->
       <textarea
-        placeholder="Introduzca un título para esta tarea..."
         autofocus
+        placeholder="Introduzca un título para esta tarea..."
         v-model="newItemTitle"
         @keydown.enter.exact.prevent="addNewItem()"
       ></textarea>
@@ -91,7 +92,7 @@
 </template>
 
 <script>
-import { addTodoItems, deleteList, editList } from '@/api.js';
+import { addTodoItems, deleteList, editList, postTodoList } from '@/api.js';
 import ListOwnerChangeOverlay from './ListOwnerChangeOverlay.vue';
 export default {
   name: 'TodoList',
@@ -182,6 +183,21 @@ export default {
           this.editNameComposer = false;
         })
         .catch(error => console.error(error.message));
+    },
+    async transferList() {
+      await postTodoList(
+        this.selectedBoardId,
+        this.listId,
+        this.name,
+        this.index,
+        this.todos
+      )
+        .then(response => console.log(response))
+        .catch(error => console.log(error));
+
+      await deleteList(this.boardId, this.listId)
+        .then(response => console.log(response))
+        .catch(error => console.log(error));
     },
     onDragStart(ev) {
       ev.dataTransfer.dropEffect = 'move';
