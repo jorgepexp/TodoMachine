@@ -9,6 +9,7 @@
     >
       <div class="task-name">
         <p v-if="!editNameComposer" class="mb-0">{{ listName }}</p>
+        <!-- TODO Bg color estático. Cambiar -->
         <v-textarea
           v-if="editNameComposer"
           class="edit-name-composer"
@@ -141,6 +142,7 @@ export default {
         title: this.newItemTitle.trim(),
         id: this.autoIncrementID(),
         index: this.autoIncrementIndex(),
+        description: '',
       };
 
       await addTodoItems(this.boardID, this.id, [todoItem])
@@ -174,13 +176,13 @@ export default {
     editListName() {
       editList(this.boardID, this.id, undefined, this.listName.trim())
         .then(response => {
+          this.editNameComposer = false;
           if (response.status === 400) {
             return console.log('No se ha podido editar la lista');
           }
           if (response.status === 201) {
             this.$store.dispatch('fetchBoards');
           }
-          this.editNameComposer = false;
         })
         .catch(error => console.error(error.message));
     },

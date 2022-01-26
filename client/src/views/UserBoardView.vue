@@ -11,9 +11,10 @@
       <todo-item
         v-for="item in list.todos"
         :todo="item"
-        :title="item.title"
         :id="item.id"
+        :title="item.title"
         :index="item.index"
+        :description="item.description"
         :key="item.id"
       >
         {{ item.title }}
@@ -72,7 +73,7 @@ export default {
     TodoItem,
   },
   props: {
-    // Actualmente ID es una string (nombre del tablero)
+    // TODO Actualmente ID es una string (nombre del tablero) Cambiar palabra
     id: {
       type: String,
       required: true,
@@ -97,10 +98,6 @@ export default {
     },
   },
   methods: {
-    prueba(ev) {
-      console.log('Funciona blur');
-      console.log(ev);
-    },
     async addTodoList(title) {
       if (!this.$refs.addNewListForm.validate()) {
         return;

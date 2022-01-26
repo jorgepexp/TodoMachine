@@ -56,12 +56,28 @@ export const addTodoItems = (boardID, listID, todos) => {
   });
 };
 
-export const editTodo = (boardID, listID, todoID, index) => {
-  return axios.put('/boards/todos', {
+export const editTodoTitle = (boardID, listID, todoID, title) => {
+  return axios.put('/boards/todos/title', {
+    boardID,
+    listID,
+    todoID,
+    title,
+  });
+};
+export const editTodoIndex = (boardID, listID, todoID, index) => {
+  return axios.put('/boards/todos/index', {
     boardID,
     listID,
     todoID,
     index,
+  });
+};
+export const editTodoDescription = (boardID, listID, todoID, description) => {
+  return axios.put('/boards/todos/description', {
+    boardID,
+    listID,
+    todoID,
+    description,
   });
 };
 

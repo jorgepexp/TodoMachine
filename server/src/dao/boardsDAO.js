@@ -21,11 +21,11 @@ export default class BoardsDAO {
   static async getBoards(ownerID) {
     let objectID = new ObjectId(ownerID);
 
-    let query = { owner: objectID };
+    let filter = { owner: objectID };
     let cursor;
 
     try {
-      cursor = await boards.find(query);
+      cursor = await boards.find(filter);
     } catch (error) {
       throw new Error('No se ha podido ejecutar el comando find');
     }
@@ -56,13 +56,13 @@ export default class BoardsDAO {
       let { boardID, listID, name, index, todos } = listData;
 
       boardID = new ObjectId(boardID);
-      let query = { _id: boardID };
+      let filter = { _id: boardID };
 
       todos = todos ?? [];
 
       const document = { id: listID, name, todos, index };
 
-      const result = await boards.updateOne(query, {
+      const result = await boards.updateOne(filter, {
         $push: { todo_lists: document },
       });
 
@@ -76,8 +76,8 @@ export default class BoardsDAO {
     try {
       boardID = new ObjectId(boardID);
 
-      let query = { _id: boardID };
-      let arrayFilters = [{ 'list.id': { $eq: listID } }];
+      const filter = { _id: boardID };
+      const arrayFilters = [{ 'list.id': { $eq: listID } }];
 
       //Si han pasado un índice, ejecutamos esa query, si no, será el nombre el que se haya pasado
       let data =
@@ -86,7 +86,7 @@ export default class BoardsDAO {
           : { 'todo_lists.$[list].name': listName };
 
       const result = await boards.updateOne(
-        query,
+        filter,
         {
           $set: data,
         },
@@ -103,8 +103,8 @@ export default class BoardsDAO {
     try {
       boardID = new ObjectId(boardID);
 
-      let query = { _id: boardID };
-      const result = await boards.update(query, {
+      const filter = { _id: boardID };
+      const result = await boards.update(filter, {
         $pull: { todo_lists: { id: listID } },
       });
       return result.modifiedCount;
@@ -116,11 +116,11 @@ export default class BoardsDAO {
   static async postTodoItems(boardID, listID, todos) {
     try {
       boardID = new ObjectId(boardID);
-      const query = { _id: boardID };
+      const filter = { _id: boardID };
       const arrayFilters = [{ 'list.id': { $eq: listID } }];
 
       const result = await boards.updateOne(
-        query,
+        filter,
         {
           $push: { 'todo_lists.$[list].todos': { $each: todos } },
         },
@@ -133,36 +133,14 @@ export default class BoardsDAO {
     }
   }
 
-  static async editTodo(boardID, listID, todoID, index) {
+  static deleteTodo(boardID, listID, todoID) {
     try {
       boardID = new ObjectId(boardID);
-      const query = { _id: boardID };
-      const arrayFilters = [
-        { 'list.id': { $eq: listID } },
-        { 'todo.id': { $eq: todoID } },
-      ];
-      const result = await boards.updateOne(
-        query,
-        {
-          $set: { 'todo_lists.$[list].todos.$[todo].index': index },
-        },
-        { arrayFilters }
-      );
-
-      return result.modifiedCount;
-    } catch (error) {
-      throw new Error(`Error al editar TODO: ${error}`);
-    }
-  }
-
-  static async deleteTodo(boardID, listID, todoID) {
-    try {
-      boardID = new ObjectId(boardID);
-      const query = { _id: boardID };
+      const filter = { _id: boardID };
       const arrayFilters = [{ 'list.id': listID }];
 
-      const result = await boards.updateOne(
-        query,
+      const result = boards.updateOne(
+        filter,
         {
           $pull: {
             'todo_lists.$[list].todos': {
@@ -176,6 +154,84 @@ export default class BoardsDAO {
       return result.modifiedCount;
     } catch (error) {
       throw new Error(`Error al eliminar la tarea: ${error}`);
+    }
+  }
+
+  static editTodoTitle(boardID, listID, todoID, title) {
+    try {
+      boardID = new ObjectId(boardID);
+      const filter = { _id: boardID };
+
+      const arrayFilters = [
+        { 'list.id': { $eq: listID } },
+        { 'todo.id': { $eq: todoID } },
+      ];
+
+      const result = boards.updateOne(
+        filter,
+        {
+          $set: {
+            'todo_lists.$[list].todos.$[todo].title': title,
+          },
+        },
+        { arrayFilters }
+      );
+
+      return result.modifiedCount;
+    } catch (error) {
+      throw new Error(`Error al editar TODO: ${error}`);
+    }
+  }
+
+  static async editTodoDescription(boardID, listID, todoID, description) {
+    try {
+      boardID = new ObjectId(boardID);
+      const filter = { _id: boardID };
+
+      const arrayFilters = [
+        { 'list.id': { $eq: listID } },
+        { 'todo.id': { $eq: todoID } },
+      ];
+
+      const result = await boards.updateOne(
+        filter,
+        {
+          $set: {
+            'todo_lists.$[list].todos.$[todo].description': description,
+          },
+        },
+        { arrayFilters }
+      );
+
+      return result.modifiedCount;
+    } catch (error) {
+      throw new Error(`Error al editar TODO: ${error}`);
+    }
+  }
+
+  static async editTodoIndex(boardID, listID, todoID, index) {
+    try {
+      boardID = new ObjectId(boardID);
+      const filter = { _id: boardID };
+
+      const arrayFilters = [
+        { 'list.id': { $eq: listID } },
+        { 'todo.id': { $eq: todoID } },
+      ];
+
+      const result = await boards.updateOne(
+        filter,
+        {
+          $set: {
+            'todo_lists.$[list].todos.$[todo].index': index,
+          },
+        },
+        { arrayFilters }
+      );
+
+      return result.modifiedCount;
+    } catch (error) {
+      throw new Error(`Error al editar TODO: ${error}`);
     }
   }
 }

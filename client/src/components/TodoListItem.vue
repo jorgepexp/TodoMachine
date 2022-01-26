@@ -17,22 +17,45 @@
         {{ title }}
       </div>
     </div>
-    <!-- TODO Añadir botón de cerrar -->
-    <!-- TODO Poder editar título de la tarea -->
-    <!-- TODO Poder añadir descripción de la tarea -->
     <!-- TODO Se podría trasladar a componente -->
     <v-dialog
       v-model="editItemOverlay"
       max-width="500"
       transition="dialog-bottom-transition"
     >
-      <v-card class="mx-auto px-4 py-4" min-width="500">
-        <v-card-title class="px-0 py-0 d-flex align-center">
-          <span class="text-h5 font-weight-bold">{{ title }}</span>
-          <v-icon>
-            mdi-window-close
-          </v-icon>
-        </v-card-title>
+      <v-card class="px-4 py-4" min-width="500">
+        <v-row class="d-flex align-center">
+          <v-card-title class="px-3 pb-2 pt-2">
+            <span
+              v-if="!editNameComposer"
+              @click="editNameComposer = true"
+              class="text-h5 font-weight-bold pb-1"
+              >{{ todoTitle }}</span
+            >
+            <!-- TODO Estilos -->
+            <v-row no-gutters>
+              <v-col md="12">
+                <v-text-field
+                  v-if="editNameComposer"
+                  v-model="todoTitle"
+                  @keydown.enter.exact.prevent="editTodoTitle"
+                  outlined
+                  dense
+                  class="ma-0 pa-0"
+                  autofocus
+                  background-color="white"
+                >
+                </v-text-field>
+                <!-- @blur="editTodoTitle" -->
+              </v-col>
+            </v-row>
+          </v-card-title>
+          <v-btn icon class="ml-auto mr-1" @click="editItemOverlay = false">
+            <v-icon>
+              mdi-window-close
+            </v-icon>
+          </v-btn>
+        </v-row>
 
         <div class="text-subtitle-1">
           en la lista
@@ -62,9 +85,16 @@
 </template>
 
 <script>
-import { editTodo, deleteTodo, addTodoItems } from '@/api.js';
+import {
+  editTodoTitle,
+  editTodoIndex,
+  // editTodoDescription,
+  deleteTodo,
+  addTodoItems,
+} from '@/api.js';
 export default {
   name: 'TodoItem',
+  //? Datos de la lista padre
   props: {
     id: {
       type: Number,
@@ -82,12 +112,19 @@ export default {
       type: Number,
       required: true,
     },
+    description: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
       itemContainer: [],
       editItemOverlay: false,
       zIndex: 100,
+      editNameComposer: false,
+      todoTitle: this.title,
+      parentListId: this.$parent.id,
     };
   },
   computed: {
@@ -97,7 +134,7 @@ export default {
   },
   methods: {
     deleteTodo() {
-      deleteTodo(this.boardID, this.$parent.id, this.id).then(response => {
+      deleteTodo(this.boardID, this.parentListId, this.id).then(response => {
         if (response.status === 200 && !response.error) {
           this.editItemOverlay = false;
           this.$store.dispatch('fetchBoards');
@@ -106,13 +143,28 @@ export default {
         console.error(response);
       });
     },
+    async editTodoTitle() {
+      this.editNameComposer = false;
+      await editTodoTitle(
+        this.boardID,
+        this.parentListId,
+        this.id,
+        this.todoTitle
+      );
+      this.$store.dispatch('fetchBoards');
+    },
+    editTodoDescription() {
+      this.editNameComposer = false;
+      editTodoTitle(this.boardID, this.parentListId, this.id, this.description);
+      console.log('Se ha intentado editar la descripción de la tarea');
+    },
     onDragStart(ev) {
       ev.dataTransfer.setData(
         'todo-data',
         JSON.stringify({
           index: this.index,
           id: this.id,
-          parentID: this.$parent.id,
+          parentID: this.parentListId,
           title: this.title,
         })
       );
@@ -121,7 +173,7 @@ export default {
     },
     async onDrop(ev) {
       const draggedItemData = JSON.parse(ev.dataTransfer.getData('todo-data'));
-      const dropZoneID = this.$parent.id;
+      const dropZoneID = this.parentListId;
 
       // Si el ID es el mismo es que han dropeado la tarea en su misma posición
       if (
@@ -153,14 +205,14 @@ export default {
         return;
       }
 
-      let firstRequest = editTodo(
+      let firstRequest = editTodoIndex(
         this.boardID,
         dropZoneID,
         parseInt(draggedItemData.id),
         this.index
       );
 
-      let secondRequest = editTodo(
+      let secondRequest = editTodoIndex(
         this.boardID,
         dropZoneID,
         this.id,

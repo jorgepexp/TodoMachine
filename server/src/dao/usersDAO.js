@@ -19,6 +19,7 @@ export default class UsersDAO {
 
   static async getUsers({ filters = null, page = 0, usersPerPage = 20 }) {
     let query;
+    let cursor;
     // Comprobamos si nos han pasado los filtros para reducir la búsqueda
     if (filters) {
       if ('username' in filters) {
@@ -32,7 +33,6 @@ export default class UsersDAO {
       }
     }
 
-    let cursor;
     try {
       cursor = await users.find(query);
     } catch (error) {
