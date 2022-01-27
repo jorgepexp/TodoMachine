@@ -125,12 +125,18 @@ export default {
       hideAddTodoComposer: true,
       isActionOpen: false,
       listName: this.name,
+      hasListNameChanged: false,
       changeOwnerOverlay: false,
     };
   },
   computed: {
     boardID() {
       return this.$store.getters.getBoardByName(this.$parent.id)._id;
+    },
+  },
+  watch: {
+    listName() {
+      this.hasListNameChanged = true;
     },
   },
   methods: {
@@ -174,18 +180,23 @@ export default {
         .catch(error => console.error(error));
     },
     editListName() {
-      editList(this.boardID, this.id, undefined, this.listName.trim())
-        .then(response => {
-          this.editNameComposer = false;
-          if (response.status === 400) {
-            return console.log('No se ha podido editar la lista');
-          }
-          if (response.status === 201) {
-            this.$store.dispatch('fetchBoards');
-          }
-        })
-        .catch(error => console.error(error.message));
+      this.editNameComposer = false;
+      if (this.hasListNameChanged) {
+        this.hasListNameChanged = false;
+        editList(this.boardID, this.id, undefined, this.listName.trim())
+          .then(response => {
+            if (response.status === 400) {
+              return console.log('No se ha podido editar la lista');
+            }
+            if (response.status === 201) {
+              this.$store.dispatch('fetchBoards');
+            }
+          })
+          .catch(error => console.error(error.message));
+      }
+      this.hasListNameChanged = false;
     },
+    // TODO Esto
     async transferList() {
       await postTodoList(
         this.selectedBoardId,

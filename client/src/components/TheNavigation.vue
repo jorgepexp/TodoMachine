@@ -31,6 +31,7 @@
       <v-spacer></v-spacer>
       <BoardCreationOverlay v-if="isUserLogged" />
       <v-btn text @click="toggleDarkTheme">
+        <!-- <v-btn text @click="$vuetify.theme.dark = !$vuetify.theme.dark"> -->
         <v-icon>
           {{
             !darkTheme ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'

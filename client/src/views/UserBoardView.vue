@@ -1,62 +1,74 @@
 <template>
-  <div class="board-container" @dragover.prevent @dragenter.prevent>
-    <todo-list
-      v-for="list in getListById"
-      :todos="list.todos"
-      :name="list.name"
-      :id="list.id"
-      :index="list.index"
-      :key="list.id"
-    >
-      <todo-item
-        v-for="item in list.todos"
-        :todo="item"
-        :id="item.id"
-        :title="item.title"
-        :index="item.index"
-        :description="item.description"
-        :key="item.id"
+  <div id="user-board-view">
+    <!-- TODO -->
+    <v-toolbar dense elevation="3" color="green">
+      <v-app-bar-nav-icon></v-app-bar-nav-icon>
+      <v-spacer></v-spacer>
+
+      <v-btn icon>
+        <v-icon>mdi-magnify</v-icon>
+      </v-btn>
+    </v-toolbar>
+
+    <div class="board-container" @dragover.prevent @dragenter.prevent>
+      <todo-list
+        v-for="list in getListById"
+        :todos="list.todos"
+        :name="list.name"
+        :id="list.id"
+        :index="list.index"
+        :key="list.id"
       >
-        {{ item.title }}
-      </todo-item>
-    </todo-list>
-
-    <v-form
-      v-if="showTodoListComposer"
-      ref="addNewListForm"
-      v-model="valid"
-      class="add-todo-list-controls"
-      @submit.prevent="addTodoList(newListTitle)"
-    >
-      <v-text-field
-        v-model="newListTitle"
-        class="new-list-title"
-        :dark="this.$store.state.darkTheme"
-        :rules="titleRules"
-        :counter="30"
-        autofocus
-        outlined
-        label="Título de la lista"
-      ></v-text-field>
-
-      <!-- TODO Conseguir que @blur funcione -->
-      <div>
-        <v-btn
-          type="submit"
-          class="text-capitalize add-list-btn"
-          color="#1976D2"
-          >Añadir lista</v-btn
+        <todo-item
+          v-for="item in list.todos"
+          :todo="item"
+          :id="item.id"
+          :title="item.title"
+          :index="item.index"
+          :description="item.description"
+          :key="item.id"
         >
-        <v-icon class="close-btn" @click="showTodoListComposer = false"
-          >mdi-close</v-icon
+          {{ item.title }}
+        </todo-item>
+      </todo-list>
+
+      <v-form
+        v-if="showTodoListComposer"
+        ref="addNewListForm"
+        v-model="valid"
+        class="add-todo-list-controls"
+        @submit.prevent="addTodoList(newListTitle)"
+      >
+        <v-text-field
+          v-model="newListTitle"
+          class="new-list-title"
+          :dark="this.$store.state.darkTheme"
+          :rules="titleRules"
+          :counter="30"
+          autofocus
+          outlined
+          label="Título de la lista"
+        ></v-text-field>
+
+        <!-- TODO Conseguir que @blur funcione -->
+        <div>
+          <v-btn
+            type="submit"
+            class="text-capitalize add-list-btn"
+            color="#1976D2"
+            >Añadir lista</v-btn
+          >
+          <v-icon class="close-btn" @click="showTodoListComposer = false"
+            >mdi-close</v-icon
+          >
+        </div>
+      </v-form>
+
+      <div v-if="!showTodoListComposer" class="add-todo-list">
+        <v-btn @click="showTodoListComposer = true"
+          >+ Añadir {{ !getListById.length ? 'nueva' : 'otra' }} lista</v-btn
         >
       </div>
-    </v-form>
-
-    <div v-if="!showTodoListComposer" class="add-todo-list">
-      <v-btn @click="showTodoListComposer = true"
-        >+ Añadir {{ !getListById.length ? 'nueva' : 'otra' }} lista</v-btn
-      >
     </div>
   </div>
 </template>
@@ -148,50 +160,52 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-//Contenedor principal del tablero
-.board-container {
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: flex-start;
+#user-board-view {
+  //Contenedor principal del tablero
+  .board-container {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: flex-start;
 
-  height: 90vh;
-  width: auto;
-  background: var(--surface1);
-  overflow-x: scroll;
+    height: 90vh;
+    width: auto;
+    background: var(--surface1);
+    overflow-x: scroll;
 
-  padding: 2rem;
+    padding: 2rem;
 
-  .v-form {
-    min-width: 250px;
+    .v-form {
+      min-width: 250px;
 
-    .v-input {
-      height: 70px;
+      .v-input {
+        height: 70px;
+      }
+
+      .add-list-btn {
+        color: var(--text1-dark);
+      }
     }
 
-    .add-list-btn {
-      color: var(--text1-dark);
+    .add-todo-list .v-btn {
+      background: var(--surface2);
+      color: var(--text1);
     }
-  }
 
-  .add-todo-list .v-btn {
-    background: var(--surface2);
-    color: var(--text1);
-  }
-
-  .new-list-title {
-    input {
-      color: red;
+    .new-list-title {
+      input {
+        color: red;
+      }
     }
-  }
 
-  .close-btn {
-    font-size: 28px;
+    .close-btn {
+      font-size: 28px;
 
-    cursor: pointer;
-    margin-left: 6px;
+      cursor: pointer;
+      margin-left: 6px;
 
-    &:hover {
-      color: var(--text2);
+      &:hover {
+        color: var(--text2);
+      }
     }
   }
 }

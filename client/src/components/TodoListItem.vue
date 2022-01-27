@@ -8,11 +8,7 @@
     <!-- 
       @dragover.stop
       @dragstart="dragStart($event)" -->
-    <div
-      ref="itemContainer"
-      class="item-container"
-      @click="editItemOverlay = !editItemOverlay"
-    >
+    <div class="item-container" @click="editItemOverlay = !editItemOverlay">
       <div class="item-content">
         {{ title }}
       </div>
@@ -22,8 +18,10 @@
       v-model="editItemOverlay"
       max-width="500"
       transition="dialog-bottom-transition"
+      class="edit-item-overlay"
     >
-      <v-card class="px-4 py-4" min-width="500">
+      <!-- TODO Conseguir que funcionen los estilos ;-;  -->
+      <v-card class="px-4 py-4 edit-item-overlay" min-width="500">
         <v-row class="d-flex align-center">
           <v-card-title class="px-3 pb-2 pt-2">
             <span
@@ -32,13 +30,13 @@
               class="text-h5 font-weight-bold pb-1"
               >{{ todoTitle }}</span
             >
-            <!-- TODO Estilos -->
             <v-row no-gutters>
               <v-col md="12">
                 <v-text-field
                   v-if="editNameComposer"
                   v-model="todoTitle"
                   @keydown.enter.exact.prevent="editTodoTitle"
+                  @blur="editTodoTitle"
                   outlined
                   dense
                   class="ma-0 pa-0"
@@ -46,7 +44,6 @@
                   background-color="white"
                 >
                 </v-text-field>
-                <!-- @blur="editTodoTitle" -->
               </v-col>
             </v-row>
           </v-card-title>
@@ -57,22 +54,20 @@
           </v-btn>
         </v-row>
 
-        <div class="text-subtitle-1">
+        <!-- TODO Cambiar color del subtitulo a uno con menos contraste -->
+        <div class="text-subtitle-1 mb-3 #424242--text">
           en la lista
           <span class="text-decoration-underline">{{ this.$parent.name }}</span>
         </div>
         <v-textarea
-          clearable
-          clear-icon="mdi-close-circle"
-          label="Descripción de la tarea..."
+          v-model="todoDescription"
+          @blur="editTodoDescription"
+          outlined
+          auto-grow
         ></v-textarea>
 
         <div class="d-flex flex-row-reverse">
-          <v-btn
-            class="white--text"
-            color="teal"
-            @click="editItemOverlay = false"
-          >
+          <v-btn class="white--text" color="teal" @click="commitItemChanges">
             Hecho
           </v-btn>
           <v-btn class="white--text" color="error" plain @click="deleteTodo">
@@ -88,7 +83,7 @@
 import {
   editTodoTitle,
   editTodoIndex,
-  // editTodoDescription,
+  editTodoDescription,
   deleteTodo,
   addTodoItems,
 } from '@/api.js';
@@ -119,13 +114,22 @@ export default {
   },
   data() {
     return {
-      itemContainer: [],
       editItemOverlay: false,
-      zIndex: 100,
       editNameComposer: false,
       todoTitle: this.title,
+      hasTitleChanged: false,
+      todoDescription: this.description,
+      hasDescriptionChanged: false,
       parentListId: this.$parent.id,
     };
+  },
+  watch: {
+    todoDescription() {
+      this.hasDescriptionChanged = true;
+    },
+    todoTitle() {
+      this.hasTitleChanged = true;
+    },
   },
   computed: {
     boardID() {
@@ -145,18 +149,35 @@ export default {
     },
     async editTodoTitle() {
       this.editNameComposer = false;
-      await editTodoTitle(
-        this.boardID,
-        this.parentListId,
-        this.id,
-        this.todoTitle
-      );
-      this.$store.dispatch('fetchBoards');
+      if (this.hasTitleChanged) {
+        await editTodoTitle(
+          this.boardID,
+          this.parentListId,
+          this.id,
+          this.todoTitle
+        );
+        this.$store.dispatch('fetchBoards');
+      }
+      this.hasTitleChanged = false;
     },
-    editTodoDescription() {
-      this.editNameComposer = false;
-      editTodoTitle(this.boardID, this.parentListId, this.id, this.description);
-      console.log('Se ha intentado editar la descripción de la tarea');
+    commitItemChanges() {
+      this.editTodoDescription();
+      this.editItemOverlay = false;
+    },
+    async editTodoDescription() {
+      if (this.todoDescription) {
+        if (this.hasDescriptionChanged) {
+          this.hasDescriptionChanged = false;
+          await editTodoDescription(
+            this.boardID,
+            this.parentListId,
+            this.id,
+            this.todoDescription
+          ).catch(error => console.error(error));
+          this.$store.dispatch('fetchBoards');
+        }
+      }
+      this.hasDescriptionChanged = false;
     },
     onDragStart(ev) {
       ev.dataTransfer.setData(
@@ -249,6 +270,12 @@ export default {
     &:hover {
       background-color: $--hover-bg-light;
     }
+  }
+
+  .edit-item-overlay div {
+    color: var(--surface2) !important;
+    background-color: var(--surface2) !important;
+    background-color: blue !important;
   }
 }
 </style>
