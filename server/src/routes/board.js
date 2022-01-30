@@ -4,6 +4,8 @@ import ListController from '../controllers/list.js';
 const router = express.Router();
 
 router.route('/').post(BoardController.postBoard);
+router.route('/').patch(BoardController.patchBoard);
+router.route('/').delete(BoardController.deleteBoard);
 router.route('/:id').get(BoardController.getBoard);
 
 router.route('/list').post(ListController.postList);

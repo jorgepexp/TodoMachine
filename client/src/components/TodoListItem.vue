@@ -62,6 +62,7 @@
         <v-textarea
           v-model="todoDescription"
           @blur="editTodoDescription"
+          placeholder="Descripcion..."
           outlined
           auto-grow
         ></v-textarea>
@@ -133,7 +134,7 @@ export default {
   },
   computed: {
     boardID() {
-      return this.$store.getters.getBoardByName(this.$parent.$parent.id)._id;
+      return this.$store.getters.getBoardByName(this.$parent.$parent.name)._id;
     },
   },
   methods: {

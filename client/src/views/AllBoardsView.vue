@@ -31,7 +31,7 @@
               name: 'board',
               params: {
                 username: $store.state.user.username,
-                id: board.name,
+                name: board.name,
               },
             }"
           >
@@ -127,7 +127,7 @@ export default {
       display: flex;
       flex-flow: row wrap;
 
-      gap: 1rem;
+      gap: 1.2rem;
       margin: 1rem 0 0 1rem;
 
       div {
@@ -138,37 +138,21 @@ export default {
         display: block;
         height: 85px;
         width: 130px;
-        transition: all 0.3s ease-in-out;
+        // transition: margin 0.3s ease-in-out;
 
         background: lightskyblue;
         color: var(--text1);
-        border-radius: 5px;
+        border: 2px solid transparent;
 
         padding: 0.6rem;
 
         &:hover {
           // border: 2px solid darkblue;
-          animation: gelatine 0.6s ease-in-out;
-        }
-        // TODO Pensar en esto
-        &::before:hover {
+          box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+          // height: 88px;
+          border-color: #3178c6;
         }
       }
-    }
-  }
-  @keyframes gelatine {
-    from,
-    to {
-      transform: scale(1, 1);
-    }
-    25% {
-      transform: scale(0.9, 1.1);
-    }
-    50% {
-      transform: scale(1.1, 0.9);
-    }
-    75% {
-      transform: scale(0.95, 1.05);
     }
   }
 

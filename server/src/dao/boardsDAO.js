@@ -50,6 +50,36 @@ export default class BoardsDAO {
     }
   }
 
+  static async patchBoard(boardID, name) {
+    // Actualmente solo es capaz de editar nomnbre, pero podrá recibir más parámetros
+    try {
+      boardID = new ObjectId(boardID);
+      let filter = { _id: boardID };
+      const result = await boards.updateOne(filter, {
+        $set: {
+          name,
+        },
+      });
+
+      return result.modifiedCount;
+    } catch (error) {
+      throw new Error(`Error insertando nuevo tablero: ${error}`);
+    }
+  }
+
+  static async deleteBoard(boardID) {
+    try {
+      boardID = new ObjectId(boardID);
+      let query = { _id: boardID };
+      // El segundo parámetro es para borrar un solo doc como máximo
+      const result = await boards.remove(query, true);
+      console.log(result);
+      return result.deletedCount;
+    } catch (error) {
+      throw new Error(`Error borrando tablero: ${error}`);
+    }
+  }
+
   // TODO Comprobar que el ID de la lista no esté siendo utilizado
   static async postList(listData) {
     try {

@@ -18,6 +18,21 @@ export const postBoard = (ownerID, name) => {
   });
 };
 
+export const patchBoard = (boardID, name) => {
+  return axios.patch('/boards', {
+    boardID,
+    name,
+  });
+};
+
+export const deleteBoard = boardID => {
+  return axios.delete('/boards', {
+    data: {
+      boardID,
+    },
+  });
+};
+
 // Listas
 export const postTodoList = (boardID, listID, name, index, todos) => {
   return axios.post('/boards/list', {

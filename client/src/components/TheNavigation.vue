@@ -1,13 +1,15 @@
 <template>
   <div id="app-nav">
     <v-app-bar app color="primary" dark height="70">
-      <v-img
-        alt="Todo Machine Logo"
-        class="mr-2 pd-2"
-        src="../assets/frankyChibi.png"
-        transition="scale-transition"
-        width="50"
-      />
+      <router-link to="/todomachine">
+        <v-img
+          alt="Todo Machine Logo"
+          class="mr-2 pd-2"
+          src="../assets/frankyChibi.png"
+          transition="scale-transition"
+          width="50"
+        />
+      </router-link>
 
       <v-toolbar-title class="nav-title">
         <router-link to="/todomachine">

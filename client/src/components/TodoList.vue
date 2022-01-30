@@ -26,7 +26,7 @@
         ></v-textarea>
       </div>
 
-      <div @click="isActionOpen = !isActionOpen" class="list-header-extras">
+      <div class="list-header-extras">
         <v-menu offset-y>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -123,7 +123,7 @@ export default {
       editNameComposer: false,
       newItemTitle: '',
       hideAddTodoComposer: true,
-      isActionOpen: false,
+
       listName: this.name,
       hasListNameChanged: false,
       changeOwnerOverlay: false,
@@ -131,7 +131,7 @@ export default {
   },
   computed: {
     boardID() {
-      return this.$store.getters.getBoardByName(this.$parent.id)._id;
+      return this.$store.getters.getBoardByName(this.$parent.name)._id;
     },
   },
   watch: {

@@ -25,7 +25,7 @@ const routes = [
     component: () => import('../components/RegisterForm.vue'),
   },
   {
-    path: '/todomachine/:username/:id',
+    path: '/todomachine/:username/:name',
     name: 'board',
     component: () => import('../views/UserBoardView.vue'),
     props: true,

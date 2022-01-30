@@ -75,7 +75,7 @@ export default {
         name: 'board',
         params: {
           username: this.$store.state.user.username,
-          id: this.boardName,
+          name: this.boardName,
         },
       });
       this.dialog = false;

@@ -1,13 +1,49 @@
 <template>
   <div id="user-board-view">
-    <!-- TODO -->
-    <v-toolbar dense elevation="3" color="green">
-      <v-app-bar-nav-icon></v-app-bar-nav-icon>
-      <v-spacer></v-spacer>
+    <!-- TODO Color no reponsive -->
+    <v-toolbar elevation="0" dense color="hsl(210, 20%, 98%)">
+      <v-row class="mt-2 d-flex align-center">
+        <v-col sm="4">
+          <v-btn
+            v-if="!editBoardNameComposer"
+            @click="editBoardNameComposer = true"
+            class="ml-7"
+            text
+            outlined
+          >
+            {{ name }}
+          </v-btn>
+          <v-text-field
+            v-model="boardName"
+            v-if="editBoardNameComposer"
+            @blur="editBoardName"
+            @keydown.enter.exact="editBoardName"
+            class="ml-7 mt-6"
+            autofocus
+            solo
+            dense
+            placeholder="Nuevo nombre del tablero..."
+          ></v-text-field>
+        </v-col>
+        <v-spacer></v-spacer>
 
-      <v-btn icon>
-        <v-icon>mdi-magnify</v-icon>
-      </v-btn>
+        <v-menu offset-y>
+          <template v-slot:activator="{ on, attrs }">
+            <v-app-bar-nav-icon class="mr-3" v-bind="attrs" v-on="on" />
+          </template>
+
+          <v-list>
+            <!-- TODO -->
+            <v-list-item>
+              <v-list-item-title>Cambiar fondo</v-list-item-title>
+            </v-list-item>
+
+            <v-list-item @click="deleteBoard">
+              <v-list-item-title>Borrar tablero</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </v-row>
     </v-toolbar>
 
     <div class="board-container" @dragover.prevent @dragenter.prevent>
@@ -32,11 +68,13 @@
         </todo-item>
       </todo-list>
 
+      <!-- TODO Conseguir que @blur funcione -->
       <v-form
         v-if="showTodoListComposer"
         ref="addNewListForm"
         v-model="valid"
         class="add-todo-list-controls"
+        @blur="prueba()"
         @submit.prevent="addTodoList(newListTitle)"
       >
         <v-text-field
@@ -50,7 +88,6 @@
           label="Título de la lista"
         ></v-text-field>
 
-        <!-- TODO Conseguir que @blur funcione -->
         <div>
           <v-btn
             type="submit"
@@ -76,7 +113,7 @@
 <script>
 import TodoList from '../components/TodoList.vue';
 import TodoItem from '../components/TodoListItem.vue';
-import * as api from '@/api.js';
+import { patchBoard, deleteBoard, postTodoList } from '@/api.js';
 
 export default {
   name: 'UserBoardView',
@@ -85,8 +122,7 @@ export default {
     TodoItem,
   },
   props: {
-    // TODO Actualmente ID es una string (nombre del tablero) Cambiar palabra
-    id: {
+    name: {
       type: String,
       required: true,
     },
@@ -96,46 +132,74 @@ export default {
       todoLists: [],
       newListTitle: '',
       showTodoListComposer: false,
+      editBoardNameComposer: false,
+      boardName: this.name,
       valid: true,
       titleRules: [v => !!v, v => v.length <= 30],
     };
   },
+  watch: {
+    boardName() {
+      this.hasBoardNameChanged = true;
+    },
+  },
   computed: {
     getListById() {
       let board = this.$store.state.user.boards.find(
-        board => board.name === this.id
+        board => board.name === this.name
       );
       // Devolvemos el tablero ordenado por índice
       return board ? board.todo_lists.sort((a, b) => a.index - b.index) : [];
     },
+    boardID() {
+      return this.$store.getters.getBoardByName(this.name)._id;
+    },
   },
   methods: {
-    async addTodoList(title) {
-      if (!this.$refs.addNewListForm.validate()) {
-        return;
-      }
-
-      let boardID = this.$store.getters.getBoardByName(this.id)._id;
-
-      await api
-        .postTodoList(
-          boardID,
-          this.autoIncrementID(),
-          title,
-          this.autoIncrementIndex()
-        )
-        .then(response => {
-          if (response.status === 400) {
-            return console.log(response.data);
-          }
-          if (response.status === 201) {
-            this.$store.dispatch('fetchBoards');
-            console.log(response.data.message);
-          }
-        });
+    addTodoList(title) {
+      if (!this.$refs.addNewListForm.validate()) return;
 
       this.showTodoListComposer = false;
-      this.newListTitle = '';
+      postTodoList(
+        this.boardID,
+        this.autoIncrementID(),
+        title,
+        this.autoIncrementIndex()
+      ).then(response => {
+        if (response.status === 500) {
+          return console.table(response.data);
+        }
+        if (response.status === 201) {
+          this.$store.dispatch('fetchBoards');
+          this.newListTitle = '';
+        }
+      });
+    },
+    async editBoardName() {
+      this.editBoardNameComposer = false;
+      if (this.boardName && this.hasBoardNameChanged) {
+        this.hasBoardNameChanged = false;
+        await patchBoard(this.boardID, this.boardName).catch(error =>
+          console.error(error)
+        );
+        await this.$store.dispatch('fetchBoards');
+
+        this.$router.push(
+          `/todomachine/${this.$store.state.user.username}/${this.boardName}`
+        );
+      }
+    },
+    deleteBoard() {
+      deleteBoard(this.boardID)
+        .then(async response => {
+          if (response.status === 200 && response.data.error === false) {
+            await this.$store.dispatch('fetchBoards');
+            this.$router.push(
+              `/todomachine/${this.$store.state.user.username}`
+            );
+          }
+        })
+        .catch(error => console.error(error));
     },
     autoIncrementID() {
       const maxID =
