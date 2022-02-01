@@ -213,19 +213,25 @@ export default {
         .catch(error => console.log(error));
     },
     onDragStart(ev) {
+      ev.dataTransfer.setData(
+        'list-data',
+        JSON.stringify({
+          index: this.index,
+          id: this.id,
+        })
+      );
       ev.dataTransfer.dropEffect = 'move';
       ev.dataTransfer.effectAllowed = 'move';
-      ev.dataTransfer.setData('list-index', this.index);
-      ev.dataTransfer.setData('list-id', this.id);
     },
     async onDrop(ev) {
-      let listIndex = ev.dataTransfer.getData('list-index');
-      let listID = ev.dataTransfer.getData('list-id');
+      if (!ev.dataTransfer.getData('list-data')) return;
 
-      // Si el ID es el mismo es que han dropeado la lista en su misma posición; no hacemos nada
-      if (this.id == listID) {
-        return;
-      }
+      const { listIndex, listID } = JSON.parse(
+        ev.dataTransfer.getData('list-data')
+      );
+
+      const isSameList = this.id == listID;
+      if (isSameList) return;
 
       let firstRequest = editList(this.boardID, parseInt(listID), this.index);
       let secondRequest = editList(this.boardID, this.id, parseInt(listIndex));

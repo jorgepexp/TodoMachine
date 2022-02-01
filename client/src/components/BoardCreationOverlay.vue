@@ -6,7 +6,7 @@
 
     <v-dialog width="500" v-model="dialog">
       <v-card class="rounded-lg" @focusout="$refs.form.reset()">
-        <v-card-title class="text-h6 blue rounded-t">
+        <v-card-title class="text-h6 blue white--text rounded-t">
           Crear nuevo tablero
         </v-card-title>
 
@@ -22,6 +22,7 @@
             :rules="boardNameRules"
             label="Título"
             required
+            :counter="boardNameMaxLength"
             autofocus
           >
           </v-text-field>
@@ -49,7 +50,11 @@ export default {
   data() {
     return {
       boardName: '',
-      boardNameRules: [v => !!v || 'Título requerido'],
+      boardNameRules: [
+        v => !!v || 'Título requerido',
+        v => v?.length <= this.boardNameMaxLength || 'Máximo 30 caracteres',
+      ],
+      boardNameMaxLength: 30,
       dialog: false,
       valid: true,
     };
@@ -61,25 +66,24 @@ export default {
       }
 
       await postBoard(this.$store.state.user.id, this.boardName).then(
-        response => {
+        async response => {
           if (response.status === 201) {
-            this.$store.dispatch('fetchBoards');
+            await this.$store.dispatch('fetchBoards');
+            this.$router.push({
+              name: 'board',
+              params: {
+                username: this.$store.state.user.username,
+                name: this.boardName,
+              },
+            });
+            this.dialog = false;
+            this.boardName = '';
           }
           if (response.status === 400) {
             console.error(response);
           }
         }
       );
-
-      this.$router.push({
-        name: 'board',
-        params: {
-          username: this.$store.state.user.username,
-          name: this.boardName,
-        },
-      });
-      this.dialog = false;
-      this.boardName = '';
     },
   },
 };

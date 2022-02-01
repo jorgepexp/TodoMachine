@@ -193,22 +193,27 @@ export default {
       ev.dataTransfer.dropEffect = 'move';
       ev.dataTransfer.effectAllowed = 'move';
     },
+    // TODO Este método hace demasiadas cosas
     async onDrop(ev) {
-      const draggedItemData = JSON.parse(ev.dataTransfer.getData('todo-data'));
-      const dropZoneID = this.parentListId;
+      // Evitamos error en caso de que se dropee otro elemento en la zona
+      if (!ev.dataTransfer.getData('todo-data')) return;
 
-      // Si el ID es el mismo es que han dropeado la tarea en su misma posición
-      if (
-        this.id == draggedItemData.id &&
-        dropZoneID == draggedItemData.parentID
-      ) {
-        return;
-      }
+      const dropZoneID = this.parentListId;
+      const {
+        draggedItemIndex,
+        draggedItemID,
+        draggedItemParentID,
+        draggedItemTitle,
+      } = JSON.parse(ev.dataTransfer.getData('todo-data'));
+
+      const isSameItem = this.id == draggedItemID;
+      const isSameDropzone = dropZoneID == draggedItemParentID;
+      if (isSameItem && isSameDropzone) return;
 
       // Al moverlo a diferente lista se inserta en última posición
-      if (dropZoneID != draggedItemData.parentID) {
+      if (dropZoneID != draggedItemParentID) {
         const todoItem = {
-          title: draggedItemData.title,
+          title: draggedItemTitle,
           id: this.$parent.autoIncrementID(),
           index: this.$parent.autoIncrementIndex(),
         };
@@ -219,26 +224,26 @@ export default {
 
         await deleteTodo(
           this.boardID,
-          parseInt(draggedItemData.parentID),
-          parseInt(draggedItemData.id)
+          parseInt(draggedItemParentID),
+          parseInt(draggedItemID)
         ).catch(error => console.error(error));
 
-        await this.$store.dispatch('fetchBoards');
+        this.$store.dispatch('fetchBoards');
         return;
       }
 
-      let firstRequest = editTodoIndex(
+      const firstRequest = editTodoIndex(
         this.boardID,
         dropZoneID,
-        parseInt(draggedItemData.id),
+        parseInt(draggedItemID),
         this.index
       );
 
-      let secondRequest = editTodoIndex(
+      const secondRequest = editTodoIndex(
         this.boardID,
         dropZoneID,
         this.id,
-        parseInt(draggedItemData.index)
+        parseInt(draggedItemIndex)
       );
 
       await Promise.all([firstRequest, secondRequest]).catch(error =>

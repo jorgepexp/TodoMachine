@@ -138,7 +138,7 @@ export default {
         display: block;
         height: 85px;
         width: 130px;
-        // transition: margin 0.3s ease-in-out;
+        overflow-wrap: break-word;
 
         background: lightskyblue;
         color: var(--text1);
