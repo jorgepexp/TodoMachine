@@ -123,7 +123,6 @@ export default {
       editNameComposer: false,
       newItemTitle: '',
       hideAddTodoComposer: true,
-
       listName: this.name,
       hasListNameChanged: false,
       changeOwnerOverlay: false,
@@ -226,7 +225,7 @@ export default {
     async onDrop(ev) {
       if (!ev.dataTransfer.getData('list-data')) return;
 
-      const { listIndex, listID } = JSON.parse(
+      const { index: listIndex, id: listID } = JSON.parse(
         ev.dataTransfer.getData('list-data')
       );
 

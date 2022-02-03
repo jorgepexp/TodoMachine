@@ -1,4 +1,4 @@
-import * as api from '@/api.js';
+import { getBoardsById } from '@/api.js';
 
 let state = {
   username: '',
@@ -36,11 +36,14 @@ const actions = {
   fetchBoards({ commit, state }) {
     if (!state.id) return console.log('User ID no definido');
 
-    api
-      .getBoardsById(state.id)
+    getBoardsById(state.id)
       .then(res => {
         if (res.status === 200) {
           // Esto está un poco feo, quizá se podrían devolver los tableros ya ordenados desde el backend
+          if (!res.data.boards) {
+            commit('setUserBoards', []);
+            return;
+          }
           res.data.boards.forEach(board => {
             board.todo_lists.forEach(todoList =>
               todoList.todos.sort((a, b) => a.index - b.index)

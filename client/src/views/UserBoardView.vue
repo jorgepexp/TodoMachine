@@ -1,13 +1,13 @@
 <template>
   <div id="user-board-view">
     <!-- TODO Color no reponsive -->
-    <v-toolbar elevation="0" dense color="hsl(210, 20%, 98%)">
+    <v-toolbar class="board-toolbar" elevation="0" dense>
       <v-row class="mt-2 d-flex align-center">
-        <v-col sm="4">
+        <v-col class="edit-board-name-composer" sm="4">
           <v-btn
             v-if="!editBoardNameComposer"
             @click="editBoardNameComposer = true"
-            class="ml-7"
+            class="ml-4"
             text
             outlined
           >
@@ -29,7 +29,11 @@
 
         <v-menu offset-y>
           <template v-slot:activator="{ on, attrs }">
-            <v-app-bar-nav-icon class="mr-3" v-bind="attrs" v-on="on" />
+            <v-app-bar-nav-icon
+              class="toolbar-hamburguer-icon"
+              v-bind="attrs"
+              v-on="on"
+            />
           </template>
 
           <v-list>
@@ -79,7 +83,6 @@
       >
         <v-text-field
           v-model="newListTitle"
-          class="new-list-title"
           :dark="this.$store.state.darkTheme"
           :rules="titleRules"
           :counter="30"
@@ -255,14 +258,9 @@ export default {
       color: var(--text1);
     }
 
-    .new-list-title {
-      input {
-        color: red;
-      }
-    }
-
     .close-btn {
       font-size: 28px;
+      color: var(--text1);
 
       cursor: pointer;
       margin-left: 6px;
@@ -270,6 +268,22 @@ export default {
       &:hover {
         color: var(--text2);
       }
+    }
+  }
+
+  .board-toolbar {
+    background-color: var(--surface1) !important;
+    transition: none !important;
+
+    .edit-board-name-composer > * {
+      color: var(--text1) !important;
+      border-color: var(--text1) !important;
+    }
+
+    .toolbar-hamburguer-icon {
+      color: var(--text1) !important;
+
+      margin-right: 1.2rem;
     }
   }
 }

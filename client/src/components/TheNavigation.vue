@@ -13,7 +13,9 @@
 
       <v-toolbar-title class="nav-title">
         <router-link to="/todomachine">
-          <span class="font-weight-medium white--text"> TODO MACHINE</span>
+          <span class="font-weight-medium white--text">
+            TODO <span>MACHINE</span>
+          </span>
         </router-link>
       </v-toolbar-title>
 
@@ -143,6 +145,8 @@ export default {
 </script>
 
 <style lang="scss">
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 .router-link-exact-active {
   text-decoration: none;
 }
@@ -164,6 +168,21 @@ export default {
   overflow: unset !important;
 }
 
+.nav-title span {
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  margin-right: 0.3rem;
+
+  span {
+    // font-family: 'Share Tech Mono', monospace;
+    font-family: 'VT323', monospace;
+    font-weight: 400;
+    font-size: 26px;
+
+    padding-left: 3px;
+  }
+}
 .cursor {
   cursor: pointer;
   opacity: 0.7;

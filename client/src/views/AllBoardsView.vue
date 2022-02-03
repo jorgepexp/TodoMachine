@@ -2,11 +2,8 @@
   <div id="all-boards-view">
     <v-list nav class="home-left-sidebar-container mt-10">
       <v-list-item-group v-model="selectedItem">
-        <v-list-item
-          v-for="(item, i) in leftMenuItems"
-          :key="i"
-          :dark="$store.state.darkTheme"
-        >
+        <v-list-item v-for="(item, i) in leftMenuItems" :key="i">
+          <!-- :dark="$store.state.darkTheme" -->
           <v-list-item-icon>
             <v-icon v-text="item.icon"></v-icon>
           </v-list-item-icon>
@@ -24,42 +21,56 @@
         disponibles</v-list-item-title
       >
       <div class="separator" aria-hidden="true"></div>
-      <div class="available-boards">
-        <div v-for="board in userBoards" :key="board._id">
-          <router-link
-            :to="{
-              name: 'board',
-              params: {
-                username: $store.state.user.username,
-                name: board.name,
-              },
-            }"
-          >
-            <span>{{ board.name }}</span>
-          </router-link>
+      <div v-if="userBoards.length" class="available-boards">
+        <div class="boards-container">
+          <div v-for="board in userBoards" :key="board._id">
+            <router-link
+              :to="{
+                name: 'board',
+                params: {
+                  username: $store.state.user.username,
+                  name: board.name,
+                },
+              }"
+            >
+              <span>{{ board.name }}</span>
+            </router-link>
+          </div>
         </div>
       </div>
+      <p v-else class="no-boards-msg">
+        No existe ningún tablero creado actualmente.
+      </p>
 
-      <v-list class="favorite-boards mt-10">
-        <v-list-item-title class="title"
-          ><span aria-hidden="true">🌟</span> Tableros
-          favoritos</v-list-item-title
-        >
-        <div class="separator" aria-hidden="true"></div>
-        <!-- <v-list-item v-for="board in userBoards" :key="board._id">
-        <router-link
-          :to="{
-            name: 'board',
-            params: {
-              username: $store.state.user.username,
-              id: board.name,
-            },
-          }"
-        >
-          {{ board.name }}
-        </router-link>
-      </v-list-item> -->
-      </v-list>
+      <v-list-item-title class="title"
+        ><span aria-hidden="true">🌟</span> Tableros
+        favoritos</v-list-item-title
+      >
+      <div class="separator" aria-hidden="true"></div>
+      <div v-if="favoriteBoards.length" class="favorite-boards">
+        <div class="boards-container">
+          <div
+            v-for="board in favoriteBoards"
+            :key="board._id"
+            class="list-item"
+          >
+            <router-link
+              :to="{
+                name: 'board',
+                params: {
+                  username: $store.state.user.username,
+                  name: board.name,
+                },
+              }"
+            >
+              <span>{{ board.name }}</span>
+            </router-link>
+          </div>
+        </div>
+      </div>
+      <p v-else class="no-favorites-msg">
+        Ningún tablero añadido a favoritos.
+      </p>
     </v-list>
   </div>
 </template>
@@ -90,6 +101,12 @@ export default {
     userBoards() {
       return this.$store.state.user.boards;
     },
+    favoriteBoards() {
+      if (this.$store.state.user.boards.length) {
+        [this.$store.state.user.boards.find(board => board.favorite === true)];
+      }
+      return [];
+    },
   },
 };
 </script>
@@ -112,17 +129,20 @@ export default {
     background: var(--surface1);
 
     .title {
-      width: 100%;
-      max-height: 34px;
-
       color: var(--text1);
-      font-weight: normal;
-      text-align: left;
+      line-height: 2rem;
+      padding: 0;
+      margin: 0;
 
       margin-left: 1rem;
     }
 
-    .available-boards {
+    .available-boards,
+    .favorite-boards {
+      margin-bottom: 4rem;
+    }
+
+    .boards-container {
       max-height: 400px;
       display: flex;
       flex-flow: row wrap;
@@ -130,9 +150,9 @@ export default {
       gap: 1.2rem;
       margin: 1rem 0 0 1rem;
 
-      div {
-        overflow: hidden;
-      }
+      // .list-item {
+
+      // }
 
       a {
         display: block;
@@ -145,20 +165,24 @@ export default {
         border: 2px solid transparent;
 
         padding: 0.6rem;
+        // margin-left: 1.2rem;
 
         &:hover {
-          // border: 2px solid darkblue;
           box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
-          // height: 88px;
           border-color: #3178c6;
         }
       }
     }
+
+    .no-boards-msg,
+    .no-favorites-msg {
+      margin: 0.5rem 0 2rem 1rem;
+    }
   }
 
-  .favorite-boards {
-    background: var(--surface1);
-  }
+  // .favorite-boards {
+  //   background: var(--surface1);
+  // }
 
   .separator {
     width: 80%;

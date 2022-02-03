@@ -10,31 +10,21 @@
           Crear nuevo tablero
         </v-card-title>
 
-        <v-form
-          ref="form"
-          v-model="valid"
-          class="px-3 mt-2"
-          lady-validation
-          @submit.prevent="createNewBoard"
-        >
+        <v-form ref="form" v-model="valid" @submit.prevent class="px-3 mt-2">
           <v-text-field
             v-model="boardName"
+            @keydown.enter="validate"
             :rules="boardNameRules"
+            :counter="boardNameMaxLength"
             label="Título"
             required
-            :counter="boardNameMaxLength"
             autofocus
           >
           </v-text-field>
         </v-form>
 
         <v-card-actions class="justify-end">
-          <v-btn
-            color="primary"
-            text
-            @click="createNewBoard"
-            :disabled="!valid"
-          >
+          <v-btn color="primary" text @click="validate" :disabled="!valid">
             Crear tablero
           </v-btn>
         </v-card-actions>
@@ -60,15 +50,16 @@ export default {
     };
   },
   methods: {
+    validate() {
+      if (this.$refs.form.validate()) this.createNewBoard();
+    },
     async createNewBoard() {
-      if (!this.$refs.form.validate()) {
-        return;
-      }
-
       await postBoard(this.$store.state.user.id, this.boardName).then(
         async response => {
           if (response.status === 201) {
             await this.$store.dispatch('fetchBoards');
+            this.dialog = false;
+
             this.$router.push({
               name: 'board',
               params: {
@@ -76,7 +67,6 @@ export default {
                 name: this.boardName,
               },
             });
-            this.dialog = false;
             this.boardName = '';
           }
           if (response.status === 400) {

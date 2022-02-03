@@ -73,7 +73,6 @@ class TablonController {
 
   async deleteBoard(req, res) {
     const { boardID } = req.body;
-    console.log(boardID);
     if (!boardID)
       return res.status(400).json({ message: 'Bad request', error: true });
 

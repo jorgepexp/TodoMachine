@@ -110,7 +110,6 @@ export default {
     },
     description: {
       type: String,
-      required: true,
     },
   },
   data() {
@@ -188,6 +187,7 @@ export default {
           id: this.id,
           parentID: this.parentListId,
           title: this.title,
+          description: this.description,
         })
       );
       ev.dataTransfer.dropEffect = 'move';
@@ -200,10 +200,11 @@ export default {
 
       const dropZoneID = this.parentListId;
       const {
-        draggedItemIndex,
-        draggedItemID,
-        draggedItemParentID,
-        draggedItemTitle,
+        index: draggedItemIndex,
+        id: draggedItemID,
+        parentID: draggedItemParentID,
+        title: draggedItemTitle,
+        description: draggedItemDescription,
       } = JSON.parse(ev.dataTransfer.getData('todo-data'));
 
       const isSameItem = this.id == draggedItemID;
@@ -216,6 +217,7 @@ export default {
           title: draggedItemTitle,
           id: this.$parent.autoIncrementID(),
           index: this.$parent.autoIncrementIndex(),
+          description: draggedItemDescription,
         };
 
         await addTodoItems(this.boardID, parseInt(dropZoneID), [
