@@ -58,36 +58,28 @@ export default class UsersDAO {
   }
 
   static async addUser(userData = null) {
-    console.log(userData);
     if (!userData) return;
+    try {
+      // let email = await users
+      // 	.find({ email: { $eq: userData.email } })
+      // 	.toArray()
+      // 	.then(data => data);
 
-    if (userData.username && userData.password) {
-      try {
-        // let email = await users
-        // 	.find({ email: { $eq: userData.email } })
-        // 	.toArray()
-        // 	.then(data => data);
+      // Comprobamos si el username está siendo ya utilizado
+      let username = await users
+        .find({ username: userData.username })
+        .toArray()
+        .then(data => data);
 
-        // Comprobamos si cualquiera de los datos está siendo ya utilizado
-        let username = await users
-          .find({ username: userData.username })
-          .toArray()
-          .then(data => data);
-
-        // email.length !== 0 ||
-        if (username.length) {
-          throw new Error('Username ya utilizado');
-        }
-
-        let modifiedCount = await users.insertOne(userData);
-        return modifiedCount;
-      } catch (error) {
-        throw new Error(
-          'No se ha podido introducir al usuario: Datos erróneos'
-        );
+      // email.length !== 0 ||
+      if (username.length) {
+        throw new Error('Username ya utilizado');
       }
-    } else {
-      throw new Error('Datos incompletos para introducir al usuario');
+
+      const result = await users.insertOne(userData);
+      return result;
+    } catch (error) {
+      throw new Error('No se ha podido introducir al usuario: Datos erróneos');
     }
   }
 }

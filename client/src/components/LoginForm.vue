@@ -1,26 +1,27 @@
 <template>
-  <div class="login-form">
+  <div id="login-form">
     <h2>Formulario de inicio de sesión</h2>
 
-    <v-form ref="form" v-model="valid" @submit="validate">
+    <v-form ref="form" class="login-form" v-model="valid">
       <v-text-field
-        :rules="usernameRules"
         v-model="username"
         @keydown.enter="validate"
+        :rules="usernameRules"
         label="Usuario"
         required
+        autofocus
       ></v-text-field>
 
       <v-text-field
         v-model="password"
+        @keydown.enter="validate"
+        @click:append="passwordShown = !passwordShown"
         :rules="passwordRules"
         :append-icon="passwordShown ? 'mdi-eye' : 'mdi-eye-off'"
         :type="passwordShown ? 'text' : 'password'"
         label="Contraseña"
         counter
         required
-        @keydown.enter="validate"
-        @click:append="passwordShown = !passwordShown"
       ></v-text-field>
 
       <div v-show="error" class="error-container">
@@ -43,7 +44,7 @@
 </template>
 
 <script>
-import * as api from '../api.js';
+import { login } from '../api.js';
 
 export default {
   data() {
@@ -57,80 +58,61 @@ export default {
         v => !!v || 'Contraseña requerida',
         v => (v && v.length >= 8) || 'El tamaño mínimo es de 8 caracteres',
       ],
-      usuario: {},
       error: false,
     };
   },
-
-  // async created() {
-  //   this.usuario = await api.getTablonPersonal();
-  //   if (typeof this.usuario === "undefined") {
-  //     console.log("Usuario es undefined");
-  //     return;
-  //   }
-  //   console.log(this.usuario);
-  // },
-
   methods: {
-    async login() {
-      if (!(this.username && this.password)) {
-        this.error = true;
-        return console.log('Datos para login incompletos');
-      }
-
+    validate() {
+      if (this.$refs.form.validate()) this.sendForm();
+    },
+    async sendForm() {
       try {
-        api
-          .login(this.username, this.password)
-          .then(response => {
-            if (response.status === 200) {
-              // Almacenamos los datos del usuario en store
-              this.$store.dispatch('setUser', {
-                username: this.username,
-                id: response.data.id,
-                token: response.data.token,
-              });
-              this.$store.commit('changeUserStatus');
-              this.$store.dispatch('fetchBoards');
+        login(this.username, this.password).then(response => {
+          if (response.status === 200) {
+            this.$store.dispatch('setUser', {
+              username: this.username,
+              id: response.data.id,
+              token: response.data.token,
+            });
+            this.$store.commit('changeUserStatus');
+            this.$store.dispatch('fetchBoards');
 
-              this.$router.push({
-                name: 'mainBoard',
-                params: { username: this.$store.state.user.username },
-              });
-            }
-          })
-          .catch(error => {
-            console.error(error.response.data.message);
-            this.error = true;
-          });
+            this.$router.push({
+              name: 'mainBoard',
+              params: { username: this.$store.state.user.username },
+            });
+          }
+        });
       } catch (error) {
         console.error(error);
       }
     },
-    reset: function() {
+    reset() {
       this.$refs.form.reset();
-      this.error = false;
-    },
-    validate: function() {
-      if (this.$refs.form.validate()) {
-        this.login();
-      } else {
-        this.error = true;
-      }
     },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-$dark-font-color: hsl(20, 0%, 5%);
+#login-form {
+  background-color: var(--surface1);
+  min-height: 100%;
+}
 
 .login-form {
   margin: 0.5rem 1rem;
 }
 
+.v-text-field input {
+  background-color: white !important;
+}
+
 h2 {
   text-align: center;
-  color: $dark-font-color;
+  color: var(--text1);
+
+  margin: 1rem;
 }
 
 .button-container {

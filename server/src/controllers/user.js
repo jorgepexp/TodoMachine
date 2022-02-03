@@ -1,7 +1,7 @@
 import usersDAO from '../dao/usersDAO.js';
 import { generateAccessToken } from '../auth/authorization.js';
 import bcrypt from 'bcrypt';
-import dayjs from 'dayjs';
+// import dayjs from 'dayjs';
 
 class UserController {
   async getUsers(req, res) {
@@ -28,33 +28,37 @@ class UserController {
     return res.status(200).json(response);
   }
 
+  // Método de registro de usuario
   async addUser(req, res) {
     try {
       let userData = {};
-      // Conseguimos el usuario y la contraseña de la petición
       const { username, password } = req.body;
       if (!username || !password) {
-        return res.status(403).json({
-          error: 'Datos incompletos',
+        return res.status(400).json({
+          message: 'Bad request',
+          error: true,
         });
       }
 
-      // Encriptamos la contraseña
-      let hashedPassword = await bcrypt.hash(password, 10);
+      let hashedPassword = await bcrypt.hash(
+        password,
+        parseInt(process.env.SALT_ROUNDS)
+      );
       userData.username = username;
       userData.password = hashedPassword;
 
-      // TODO No enviar la contraseña de vuelta
-      let user = await usersDAO.addUser(userData);
-      if (!user.length) {
+      let result = await usersDAO.addUser(userData);
+      if (result.insertedCount === 0) {
         return res.status(403).json({
-          error: 'El nombre de usuario ya está siendo utilizado',
+          message: 'El nombre de usuario ya está siendo utilizado',
+          error: true,
         });
       }
+
       const token = generateAccessToken(username);
-      let response = {
-        user,
+      const response = {
         token,
+        id: result.insertedId,
       };
 
       return res.status(200).json(response);
@@ -66,25 +70,29 @@ class UserController {
   async login(req, res) {
     try {
       let filters = {};
-      // TODO Poder hacer login también con el email
+      // TODO Poder hacer login también con email
       const { username, password } = req.body;
 
-      if (!username || !password)
-        throw new Error('username o password undefined');
+      if (!username || !password) {
+        return res.status(400).json({
+          message: 'Bad request',
+          error: true,
+        });
+      }
 
       filters.username = username;
 
       const user = await usersDAO.getUsers({ filters });
       if (!user.length) {
         return res
-          .status(403)
+          .status(401)
           .send({ message: 'Información de login incorrecta' });
       }
 
       const validPassword = await bcrypt.compare(password, user[0].password);
       if (!validPassword) {
         return res
-          .status(403)
+          .status(401)
           .send({ message: 'Información de login incorrecta' });
       }
 
@@ -106,7 +114,7 @@ class UserController {
         error: null,
       });
     } catch (error) {
-      return res.status(500).send({ error: error.message });
+      return res.status(500).send({ message: error.message, error: true });
     }
   }
 
@@ -119,10 +127,6 @@ class UserController {
     req.session.destroy();
     return res.status(200).send('Logout correcto');
   }
-
-  // editUserById(req, res) {
-  // 	return res.status(200).json({ key: `put ${req.params.id}` });
-  // }
 }
 
 export default new UserController();
