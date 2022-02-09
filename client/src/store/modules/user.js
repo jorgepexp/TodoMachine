@@ -2,6 +2,7 @@ import { getBoardsById } from '@/api.js';
 
 let state = {
   username: '',
+  profilePic: null,
   accessToken: '',
   id: '',
   loggedIn: false,
@@ -20,12 +21,16 @@ const mutations = {
   setUserBoards(state, boards) {
     state.boards = [...boards];
   },
+  setUserProfilePicture(state, { profilePic }) {
+    state.profilePic = profilePic;
+  },
   resetUser(state) {
     state.username = '';
     state.accessToken = '';
     state.id = '';
     state.loggedIn = false;
     state.boards = [];
+    state.profilePic = null;
   },
 };
 

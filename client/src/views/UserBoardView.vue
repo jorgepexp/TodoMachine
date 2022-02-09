@@ -78,7 +78,6 @@
         ref="addNewListForm"
         v-model="valid"
         class="add-todo-list-controls"
-        @blur="prueba()"
         @submit.prevent="addTodoList(newListTitle)"
       >
         <v-text-field

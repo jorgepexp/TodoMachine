@@ -75,6 +75,7 @@ export default {
               token: response.data.token,
             });
             this.$store.commit('changeUserStatus');
+            this.getRandomPfp();
             this.$store.dispatch('fetchBoards');
 
             this.$router.push({
@@ -86,6 +87,14 @@ export default {
       } catch (error) {
         console.error(error);
       }
+    },
+    getRandomPfp() {
+      fetch('https://randomuser.me/api/')
+        .then(response => response.json())
+        .then(data => {
+          let profilePic = data.results[0].picture.medium;
+          this.$store.commit('setUserProfilePicture', { profilePic });
+        });
     },
     reset() {
       this.$refs.form.reset();
