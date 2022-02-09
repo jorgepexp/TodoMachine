@@ -1,7 +1,12 @@
 <template>
   <div class="text-center">
-    <v-btn @click.stop="dialog = true" text class="addBoardBtn">
-      <v-icon large>mdi-plus-box</v-icon>
+    <v-btn @click.stop="dialog = true" text>
+      <div v-if="mobile">
+        <span class="pr-2">Nuevo tablero</span>
+        <v-icon> mdi-plus-box</v-icon>
+      </div>
+
+      <v-icon v-else large> mdi-plus-box</v-icon>
     </v-btn>
 
     <v-dialog width="500" v-model="dialog">
@@ -37,6 +42,12 @@
 import { postBoard } from '../api.js';
 export default {
   name: 'BoardCreationOverlay',
+  props: {
+    mobile: {
+      type: Boolean,
+      required: false,
+    },
+  },
   data() {
     return {
       boardName: '',
@@ -79,4 +90,4 @@ export default {
 };
 </script>
 
-<style lang="scss"></style>
+<style lang="scss" scoped></style>

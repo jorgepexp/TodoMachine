@@ -2,8 +2,11 @@
   <div id="all-boards-view">
     <v-list nav class="home-left-sidebar-container mt-10">
       <v-list-item-group v-model="selectedItem">
-        <v-list-item v-for="(item, i) in leftMenuItems" :key="i">
-          <!-- :dark="$store.state.darkTheme" -->
+        <v-list-item
+          v-for="(item, i) in leftMenuItems"
+          :key="i"
+          class="left-sidebar-item"
+        >
           <v-list-item-icon>
             <v-icon v-text="item.icon"></v-icon>
           </v-list-item-icon>
@@ -123,6 +126,10 @@ export default {
 
   .home-left-sidebar-container {
     background: var(--surface1);
+
+    .left-sidebar-item {
+      color: var(--text1) !important;
+    }
   }
 
   .all-boards {
@@ -149,10 +156,6 @@ export default {
 
       gap: 1.2rem;
       margin: 1rem 0 0 1rem;
-
-      // .list-item {
-
-      // }
 
       a {
         display: block;
