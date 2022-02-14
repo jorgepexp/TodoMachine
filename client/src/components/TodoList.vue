@@ -345,7 +345,6 @@ export default {
     margin-bottom: 1rem;
 
     &:hover {
-      // background: darken($--todo-bg-color, 6);
       background: var(--surface4);
     }
 

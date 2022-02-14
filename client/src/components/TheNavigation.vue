@@ -19,10 +19,10 @@
         </router-link>
       </v-toolbar-title>
 
-      <v-menu offset-y>
+      <v-menu offset-y class="dropdown-menu">
         <template v-slot:activator="{ on, attrs }">
           <v-btn
-            class="mx-2 ht-4 dropdown-menu"
+            class="pb-1 dropdown-menu-btn"
             x-small
             color="transparent"
             elevation="0"
@@ -34,9 +34,24 @@
         </template>
 
         <v-list>
-          <v-list-item>
+          <v-list-item v-if="!isUserLogged">
+            <router-link to="/todomachine/login">
+              <v-btn text>
+                <span class="mr-2">Iniciar sesión</span>
+                <v-icon>mdi-login</v-icon>
+              </v-btn>
+            </router-link>
+          </v-list-item>
+          <v-list-item v-if="!isUserLogged">
+            <router-link to="/todomachine/registro" class="register-btn">
+              <v-btn text>
+                <span class="mr-2">Registro</span>
+                <v-icon>mdi-account-plus</v-icon>
+              </v-btn>
+            </router-link>
+          </v-list-item>
+          <v-list-item v-if="isUserLogged">
             <router-link
-              v-if="isUserLogged"
               :to="{
                 name: 'mainBoard',
                 params: { username: $store.state.user.username },
@@ -49,8 +64,8 @@
             </router-link>
           </v-list-item>
 
-          <v-list-item>
-            <BoardCreationOverlay v-if="isUserLogged" mobile />
+          <v-list-item v-if="isUserLogged">
+            <BoardCreationOverlay mobile />
           </v-list-item>
 
           <v-list-item>
@@ -81,8 +96,8 @@
         </v-btn>
       </router-link>
 
-      <!-- <v-spacer></v-spacer> -->
       <BoardCreationOverlay v-if="isUserLogged" class="create-board-btn" />
+
       <v-btn text @click="toggleDarkTheme" class="toggle-theme-btn">
         <v-icon>
           {{
@@ -94,14 +109,14 @@
       <!-- Ajustes de usuario -->
       <div class="user-settings-container">
         <div v-if="!isUserLogged">
-          <router-link to="/todomachine/login">
+          <router-link to="/todomachine/login" class="login-btn">
             <v-btn text>
               <span class="mr-2">Iniciar sesión</span>
               <v-icon>mdi-login</v-icon>
             </v-btn>
           </router-link>
 
-          <router-link to="/todomachine/registro">
+          <router-link to="/todomachine/registro" class="register-btn">
             <v-btn text>
               <span class="mr-2">Registro</span>
               <v-icon>mdi-account-plus</v-icon>
@@ -122,6 +137,7 @@
     </v-app-bar>
 
     <!-- Profile sidebar  -->
+    <!-- TODO Trasladar a componente -->
     <v-navigation-drawer right absolute temporary v-model="drawer">
       <v-list nav dense>
         <v-list-item>
@@ -175,10 +191,10 @@ export default {
   methods: {
     logoutUser() {
       logout()
-        .then(() => {
+        .then(async () => {
           this.drawer = false;
+          await this.$store.commit('resetUser');
           this.$router.push({ name: 'home' });
-          this.$store.commit('resetUser');
         })
         .catch(error => console.error(`Algo ha ido mal: ${error}`));
     },
@@ -222,8 +238,10 @@ export default {
 
   .toggle-theme-btn,
   .create-board-btn,
-  .dropdown-menu,
-  .user-boards-link {
+  .dropdown-menu-btn,
+  .user-boards-link,
+  .register-btn,
+  .login-btn {
     display: none;
   }
 
@@ -240,13 +258,15 @@ export default {
     right: 25px;
   }
 
-  @media (max-width: 560px) {
-    .dropdown-menu {
+  @media (max-width: 585px) {
+    .dropdown-menu-btn {
       display: block !important;
+      height: 24px !important;
+      margin-left: auto;
     }
   }
 
-  @media (min-width: 560px) {
+  @media (min-width: 585px) {
     .user-settings-container {
       display: flex;
       flex-grow: 1;
@@ -257,8 +277,10 @@ export default {
 
     .toggle-theme-btn,
     .create-board-btn,
-    .user-boards-link {
-      display: block;
+    .user-boards-link,
+    .register-btn,
+    .login-btn {
+      display: inline-block;
     }
 
     // .create-board-btn {}

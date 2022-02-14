@@ -1,18 +1,29 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import { getUserByUsername } from '@/api';
+import store from '@/store/index.js';
+const isUserLoggedIn = store.state.user.loggedIn;
+const username = store.state.user.username;
 
 Vue.use(VueRouter);
 
 const routes = [
   {
     path: '/',
-    redirect: 'todomachine',
+    redirect: 'home',
   },
-
   {
     path: '/todomachine',
-    name: 'todomachine',
+    name: 'home',
     component: () => import('../views/HomeView.vue'),
+    // Hook de ruta. Si el usuario está logeado, no mostramos Home sino que redirigimos hacia sus tableros
+    beforeEnter: (to, from, next) => {
+      if (isUserLoggedIn) {
+        next({ name: 'mainBoard', params: { username } });
+      } else {
+        next();
+      }
+    },
   },
   {
     path: '/todomachine/login',
@@ -30,18 +41,26 @@ const routes = [
     component: () => import('../views/UserBoardView.vue'),
     props: true,
   },
-  // TODO Crear función para checkar :username (beforeEnter). Si no existe redirigir a 404
   {
     path: '/todomachine/:username',
     name: 'mainBoard',
     component: () => import('../views/AllBoardsView.vue'),
-    props: true,
     meta: {
       requiredAuth: true,
+    },
+    beforeEnter: (to, from, next) => {
+      getUserByUsername(to.params.username).then(response => {
+        if (response.data?.users?.length) {
+          next();
+        } else {
+          next({ name: '404' });
+        }
+      });
     },
   },
   {
     path: '*',
+    name: '404',
     component: () => import('../views/NotFoundView.vue'),
   },
 ];
