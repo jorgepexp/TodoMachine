@@ -121,7 +121,7 @@ h2 {
   text-align: center;
   color: var(--text1);
 
-  margin: 1rem;
+  padding: 1rem;
 }
 
 .button-container {

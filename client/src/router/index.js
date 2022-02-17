@@ -10,13 +10,15 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: '/',
-    redirect: 'home',
+    redirect: { name: 'home' },
   },
   {
     path: '/todomachine',
     name: 'home',
-    component: () => import('../views/HomeView.vue'),
-    // Hook de ruta. Si el usuario está logeado, no mostramos Home sino que redirigimos hacia sus tableros
+
+    component: () =>
+      import(/*webpackChunkName: "HomeView"*/ '../views/HomeView.vue'),
+    // * Hook de ruta. Si el usuario está logeado redirigimos desde Home hacia sus tableros
     beforeEnter: (to, from, next) => {
       if (isUserLoggedIn) {
         next({ name: 'mainBoard', params: { username } });
@@ -28,23 +30,29 @@ const routes = [
   {
     path: '/todomachine/login',
     name: 'login',
-    component: () => import('../components/LoginForm.vue'),
+    component: () =>
+      import(/*webpackChunkName: "LoginView"*/ '../components/LoginForm.vue'),
   },
   {
     path: '/todomachine/registro',
     name: 'register',
-    component: () => import('../components/RegisterForm.vue'),
+    component: () =>
+      import(
+        /*webpackChunkName: "RegisterView"*/ '../components/RegisterForm.vue'
+      ),
   },
   {
     path: '/todomachine/:username/:name',
     name: 'board',
-    component: () => import('../views/UserBoardView.vue'),
+    component: () =>
+      import(/*webpackChunkName: "CurrentBoard"*/ '../views/UserBoardView.vue'),
     props: true,
   },
   {
     path: '/todomachine/:username',
     name: 'mainBoard',
-    component: () => import('../views/AllBoardsView.vue'),
+    component: () =>
+      import(/*webpackChunkName: "AllBoards"*/ '../views/AllBoardsView.vue'),
     meta: {
       requiredAuth: true,
     },

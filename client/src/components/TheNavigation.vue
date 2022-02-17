@@ -1,7 +1,7 @@
 <template>
   <div id="app-nav">
     <v-app-bar app dark height="70" class="navigation">
-      <router-link to="/todomachine">
+      <router-link :to="{ name: 'home' }">
         <v-img
           alt="Todo Machine Logo"
           class="mr-2 pd-2"
@@ -12,7 +12,7 @@
       </router-link>
 
       <v-toolbar-title class="nav-title">
-        <router-link to="/todomachine">
+        <router-link :to="{ name: 'home' }">
           <span class="font-weight-medium white--text">
             TODO <span>MACHINE</span>
           </span>
@@ -23,6 +23,7 @@
         <template v-slot:activator="{ on, attrs }">
           <v-btn
             class="pb-1 dropdown-menu-btn"
+            :class="!isUserLogged ? 'ml-auto' : ''"
             x-small
             color="transparent"
             elevation="0"
@@ -35,7 +36,7 @@
 
         <v-list>
           <v-list-item v-if="!isUserLogged">
-            <router-link to="/todomachine/login">
+            <router-link :to="{ name: 'login' }">
               <v-btn text>
                 <span class="mr-2">Iniciar sesión</span>
                 <v-icon>mdi-login</v-icon>
@@ -43,7 +44,7 @@
             </router-link>
           </v-list-item>
           <v-list-item v-if="!isUserLogged">
-            <router-link to="/todomachine/registro" class="register-btn">
+            <router-link :to="{ name: 'register' }" class="register-btn">
               <v-btn text>
                 <span class="mr-2">Registro</span>
                 <v-icon>mdi-account-plus</v-icon>
@@ -109,14 +110,14 @@
       <!-- Ajustes de usuario -->
       <div class="user-settings-container">
         <div v-if="!isUserLogged">
-          <router-link to="/todomachine/login" class="login-btn">
+          <router-link :to="{ name: 'login' }" class="login-btn">
             <v-btn text>
               <span class="mr-2">Iniciar sesión</span>
               <v-icon>mdi-login</v-icon>
             </v-btn>
           </router-link>
 
-          <router-link to="/todomachine/registro" class="register-btn">
+          <router-link :to="{ name: 'register' }" class="register-btn">
             <v-btn text>
               <span class="mr-2">Registro</span>
               <v-icon>mdi-account-plus</v-icon>
@@ -137,7 +138,7 @@
     </v-app-bar>
 
     <!-- Profile sidebar  -->
-    <!-- TODO Trasladar a componente -->
+    <!-- TODO Se puede trasladar a componente -->
     <v-navigation-drawer right absolute temporary v-model="drawer">
       <v-list nav dense>
         <v-list-item>
@@ -194,7 +195,7 @@ export default {
         .then(async () => {
           this.drawer = false;
           await this.$store.commit('resetUser');
-          this.$router.push({ name: 'home' });
+          await this.$router.push({ name: 'home' });
         })
         .catch(error => console.error(`Algo ha ido mal: ${error}`));
     },
@@ -262,7 +263,6 @@ export default {
     .dropdown-menu-btn {
       display: block !important;
       height: 24px !important;
-      margin-left: auto;
     }
   }
 
@@ -274,6 +274,10 @@ export default {
       justify-content: flex-end;
       align-items: center;
     }
+
+    // .dropdown-menu-btn {
+    //   margin-left: 0;
+    // }
 
     .toggle-theme-btn,
     .create-board-btn,
