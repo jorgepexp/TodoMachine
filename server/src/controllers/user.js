@@ -1,5 +1,5 @@
 import usersDAO from '../dao/usersDAO.js';
-import { generateAccessToken } from '../auth/authorization.js';
+import { generateAccessToken, generateRefreshToken } from './auth.js';
 import bcrypt from 'bcrypt';
 // import dayjs from 'dayjs';
 
@@ -31,7 +31,6 @@ class UserController {
   // Método de registro de usuario
   async addUser(req, res) {
     try {
-      let userData = {};
       const { username, password } = req.body;
       if (!username || !password) {
         return res.status(400).json({
@@ -40,14 +39,9 @@ class UserController {
         });
       }
 
-      let hashedPassword = await bcrypt.hash(
-        password,
-        parseInt(process.env.SALT_ROUNDS)
-      );
-      userData.username = username;
-      userData.password = hashedPassword;
+      let hashedPassword = await bcrypt.hash(password, parseInt(11));
 
-      let result = await usersDAO.addUser(userData);
+      let result = await usersDAO.addUser(username, hashedPassword);
       if (result.insertedCount === 0) {
         return res.status(403).json({
           message: 'El nombre de usuario ya está siendo utilizado',
@@ -55,9 +49,7 @@ class UserController {
         });
       }
 
-      const token = generateAccessToken(username);
       const response = {
-        token,
         id: result.insertedId,
       };
 
@@ -67,65 +59,55 @@ class UserController {
     }
   }
 
-  async login(req, res) {
+  async handleLogin(req, res) {
     try {
-      let filters = {};
-      // TODO Poder hacer login también con email
       const { username, password } = req.body;
-
       if (!username || !password) {
         return res.status(400).json({
           message: 'Bad request',
-          error: true,
         });
       }
 
+      let filters = {};
       filters.username = username;
-
       const user = await usersDAO.getUsers({ filters });
-      if (!user.length) {
-        return res
-          .status(401)
-          .send({ message: 'Información de login incorrecta' });
-      }
 
-      const validPassword = await bcrypt.compare(password, user[0].password);
-      if (!validPassword) {
-        return res
-          .status(401)
-          .send({ message: 'Información de login incorrecta' });
-      }
+      if (!user.length) return res.sendStatus(401);
 
-      req.session.authenticated = true;
-      req.session.username = username;
-      const token = generateAccessToken(username);
+      if (!(await bcrypt.compare(password, user[0].password)))
+        return res.sendStatus(401);
 
-      // res.cookie('access_token', JSON.stringify(token), {
-      // 	secure: process.env.NODE_ENV !== 'development',
-      // 	httpOnly: true,
-      // 	sameSite: true,
-      // 	expires: dayjs().add(30, 'days').toDate(),
-      // });
+      const accessToken = generateAccessToken(user[0].username);
+      const refreshToken = generateRefreshToken(user[0].username);
 
-      return res.status(200).json({
-        username,
-        id: user[0]._id,
-        token,
-        error: null,
+      // TODO Insertar este nuevo usuario junto al token de refresco en la BDD
+      // const currentUser = { ...user, refreshToken };
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        secure: process.env.NODE_ENV !== 'development',
       });
+
+      res.json({ accessToken });
     } catch (error) {
-      return res.status(500).send({ message: error.message, error: true });
+      return res.status(500).send({ message: error.message });
     }
   }
 
-  async logout(req, res) {
-    //Expiramos el JWT y destruimos las sesiones activas
-    // res.cookie('access_token', {
-    // 	expires: new Date('01-01-1970').toISOString(),
-    // });
-    // res.clearCookie('access_token');
-    req.session.destroy();
-    return res.status(200).send('Logout correcto');
+  async handleLogout(req, res) {
+    const cookies = req.cookies;
+    if (!cookies?.refreshToken) return res.sendStatus(204);
+    const refreshToken = cookies.refreshToken;
+
+    // TODO Si refreshToken no está en BD, eliminamos la cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV !== 'development',
+    });
+    // TODO Si lo está, lo eliminamos de la BD
+    return res.sendStatus(204);
   }
 }
 

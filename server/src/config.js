@@ -23,22 +23,6 @@ export default app => {
   //Manejo de cookies
   app.use(cookieParser());
 
-  //Control de sesión
-  app.use(
-    session({
-      secret: 'SeCreto-dI-lA-mamMa',
-      resave: false,
-      saveUninitialized: true,
-      cookie: {
-        secure: app.locals.env !== 'development',
-        sameSite: app.locals.env === 'development',
-        httpOnly: true,
-        maxAge: 60000,
-      },
-      unset: 'destroy',
-    })
-  );
-
   //Configuramos CORS
   const corsConfig = {
     origin: [

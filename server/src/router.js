@@ -1,19 +1,14 @@
 import board from './routes/board.js';
-import register from './routes/register.js';
 import user from './routes/user.js';
-import login from './routes/login.js';
-import logout from './routes/logout.js';
-import session from './routes/session.js';
-// import { authenticateToken } from './auth/authorization.js';
+import auth from './routes/auth.js';
+import { verifyJWT } from './middlewares/verifyJWT.js';
 
 export default app => {
-  app.use('/boards', board);
-  // app.use('/user', authenticateToken, user);
   app.use('/user', user);
-  app.use('/register', register);
-  app.use('/login', login);
-  app.use('/logout', logout);
-  app.use('/checkLogin', session);
+  app.use('/auth', auth);
+  // A partir de aquí todas las rutas requieren autorización
+  app.use(verifyJWT);
+  app.use('/boards', board);
 
   // Si no usan ninguna de nuestra rutas, redirigimos con un 404
   app.use('*', (req, res) => res.status(404).json({ error: 'Page not found' }));

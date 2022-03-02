@@ -20,7 +20,7 @@ export default class UsersDAO {
   static async getUsers({ filters = null, page = 0, usersPerPage = 20 }) {
     let query;
     let cursor;
-    // Comprobamos si nos han pasado los filtros para reducir la búsqueda
+    // Comprobamos si nos han pasado los filtros para acotar la búsqueda
     if (filters) {
       if ('username' in filters) {
         query = { username: { $eq: filters['username'] } };
@@ -30,6 +30,8 @@ export default class UsersDAO {
         query = { email: { $eq: filters['email'] } };
       } else if ('name' in filters) {
         query = { name: { $eq: filters['name'] } };
+      } else if ('token' in filters) {
+        query = { name: { $eq: filters['token'] } };
       }
     }
 
@@ -57,8 +59,10 @@ export default class UsersDAO {
     }
   }
 
-  static async addUser(userData = null) {
-    if (!userData) return;
+  // static async findUser(username)
+
+  static async addUser(username, password) {
+    if (!username || !password) return;
     try {
       // let email = await users
       // 	.find({ email: { $eq: userData.email } })
@@ -67,7 +71,7 @@ export default class UsersDAO {
 
       // Comprobamos si el username está siendo ya utilizado
       let username = await users
-        .find({ username: userData.username })
+        .find({ username: username })
         .toArray()
         .then(data => data);
 
@@ -76,7 +80,7 @@ export default class UsersDAO {
         throw new Error('Username ya utilizado');
       }
 
-      const result = await users.insertOne(userData);
+      const result = await users.insertOne({ username, password });
       return result;
     } catch (error) {
       throw new Error('No se ha podido introducir al usuario: Datos erróneos');
