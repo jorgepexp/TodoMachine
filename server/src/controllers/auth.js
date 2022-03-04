@@ -1,15 +1,19 @@
 import jwt from 'jsonwebtoken';
+import usersDAO from '../dao/usersDAO.js';
 
-export const handleRefreshToken = (req, res) => {
+export const handleRefreshToken = async (req, res) => {
   try {
     const cookies = req.cookies;
     if (!cookies?.refreshToken) return res.sendStatus(401);
     const refreshToken = cookies.refreshToken;
+    const filters = { filters: { refreshToken } };
+    console.log('Encuentra el token en las cookies');
+    const foundUser = await usersDAO.getUsers(filters);
 
-    //TODO Comprobar cookie almacenada en BDD contra la recibida
-    // const userMatches =
-    // if (!userMatches) return res.sendStatus(403);
+    //* Si no se encuentra el token en BD lanzamos Forbidden
+    if (foundUser?.length > 1) return res.sendStatus(403);
 
+    //* Evalua el JWT
     jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err, decoded) => {
       if (err) return res.sendStatus(403);
       const accessToken = jwt.sign(

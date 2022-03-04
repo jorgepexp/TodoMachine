@@ -1,22 +1,23 @@
 import usersDAO from '../dao/usersDAO.js';
 import { generateAccessToken, generateRefreshToken } from './auth.js';
 import bcrypt from 'bcrypt';
-// import dayjs from 'dayjs';
 
 class UserController {
   async getUsers(req, res) {
     // Comprobamos los parámetros que nos han pasado en la llamada a la API
+    console.log('Entra');
     const usersPerPage = req.query.usersPerPage
       ? parseInt(req.query.usersPerPage, 10)
       : 20;
     const page = req.query.page ? parseInt(req.query.page, 10) : 0;
-
     let filters = {};
     if (req.query.username) filters.username = req.query.username;
     else if (req.query.id) filters.id = req.query.id;
-    else if (req.query.email) filters.email = req.query.email;
     else if (req.query.name) filters.name = req.query.name;
-
+    else if (req.query.refreshToken)
+      filters.refreshToken = req.query.refreshToken;
+    console.log(req.query);
+    console.log('Llega a pasar las declaraciones');
     let users = await usersDAO.getUsers({ filters, page, usersPerPage });
     let response = {
       users,
@@ -38,12 +39,11 @@ class UserController {
           error: true,
         });
       }
+      const hashedPassword = await bcrypt.hash(password, parseInt(11));
 
-      let hashedPassword = await bcrypt.hash(password, parseInt(11));
-
-      let result = await usersDAO.addUser(username, hashedPassword);
+      const result = await usersDAO.addUser(username, hashedPassword);
       if (result.insertedCount === 0) {
-        return res.status(403).json({
+        return res.status(400).json({
           message: 'El nombre de usuario ya está siendo utilizado',
           error: true,
         });
@@ -68,8 +68,7 @@ class UserController {
         });
       }
 
-      let filters = {};
-      filters.username = username;
+      const filters = { username };
       const user = await usersDAO.getUsers({ filters });
 
       if (!user.length) return res.sendStatus(401);
@@ -80,12 +79,15 @@ class UserController {
       const accessToken = generateAccessToken(user[0].username);
       const refreshToken = generateRefreshToken(user[0].username);
 
-      // TODO Insertar este nuevo usuario junto al token de refresco en la BDD
-      // const currentUser = { ...user, refreshToken };
+      // * Introducimos el nuevo token en BD
+      const filtros = { username };
+      const document = { refreshToken };
+      await usersDAO.patchUser(filtros, document);
 
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 1 day
+        sameSite: 'None',
         secure: process.env.NODE_ENV !== 'development',
       });
 
@@ -96,18 +98,47 @@ class UserController {
   }
 
   async handleLogout(req, res) {
+    //? Remember to delete accessToken in the client
     const cookies = req.cookies;
     if (!cookies?.refreshToken) return res.sendStatus(204);
     const refreshToken = cookies.refreshToken;
 
-    // TODO Si refreshToken no está en BD, eliminamos la cookie
+    //* Buscamos el token en BD
+    const filters = { filters: { refreshToken } };
+    const result = await usersDAO.getUsers(filters);
+    const foundUserToken = result[0]?.refreshToken;
+
+    //* Eliminamos el token si se encuentra en la BD
+    if (foundUserToken === refreshToken) {
+      const document = { refreshToken: '' };
+      await usersDAO.patchUser({ refreshToken }, document);
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        sameSite: 'None',
+        secure: process.env.NODE_ENV !== 'development',
+      });
+      console.log('refreshToken se ha encontrado y eliminado de BD');
+      return res.sendStatus(204);
+    }
+
+    //* Si no se encuentra, simplemente eliminamos la cookie
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: 'None',
       secure: process.env.NODE_ENV !== 'development',
     });
-    // TODO Si lo está, lo eliminamos de la BD
     return res.sendStatus(204);
+  }
+
+  async patchUser(req, res) {
+    const { filters, document } = req.body;
+    if (!filters || !document) return res.sendStatus(400);
+
+    let modifiedCount = await usersDAO.patchUser(filters, document);
+
+    if (modifiedCount === 0) return res.sendStatus(400);
+
+    return res.sendStatus(200);
   }
 }
 

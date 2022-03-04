@@ -51,7 +51,7 @@ export default class BoardsDAO {
   }
 
   static async patchBoard(boardID, name) {
-    // Actualmente solo es capaz de editar nomnbre, pero podrá recibir más parámetros
+    // Actualmente solo es capaz de editar nombre, pero podrá recibir más parámetros
     try {
       boardID = new ObjectId(boardID);
       let filter = { _id: boardID };
@@ -70,10 +70,9 @@ export default class BoardsDAO {
   static async deleteBoard(boardID) {
     try {
       boardID = new ObjectId(boardID);
-      let query = { _id: boardID };
+      const query = { _id: boardID };
       // El segundo parámetro es para borrar un solo doc como máximo
       const result = await boards.remove(query, true);
-      console.log(result);
       return result.deletedCount;
     } catch (error) {
       throw new Error(`Error borrando tablero: ${error}`);
@@ -86,7 +85,7 @@ export default class BoardsDAO {
       let { boardID, listID, name, index, todos } = listData;
 
       boardID = new ObjectId(boardID);
-      let filter = { _id: boardID };
+      const filter = { _id: boardID };
 
       todos = todos ?? [];
 
