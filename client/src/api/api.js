@@ -6,6 +6,13 @@ export const getUserByUsername = username => {
   return axios.get(`/user/?username=${username}`);
 };
 
+export const patchUser = (filters, document) => {
+  return axios.patch(`/user`, {
+    filters,
+    document,
+  });
+};
+
 // Tablones
 export const getBoardsById = ownerID => {
   return axios.get(`/boards/${ownerID}`);
@@ -62,7 +69,7 @@ export const deleteList = (boardID, listID) => {
   });
 };
 
-// To do's
+// To Do's
 export const addTodoItems = (boardID, listID, todos) => {
   return axios.post('/boards/todos', {
     boardID,
@@ -71,28 +78,12 @@ export const addTodoItems = (boardID, listID, todos) => {
   });
 };
 
-export const editTodoTitle = (boardID, listID, todoID, title) => {
-  return axios.put('/boards/todos/title', {
+export const patchTodo = (boardID, listID, todoID, document) => {
+  return axios.patch('/boards/todos/', {
     boardID,
     listID,
     todoID,
-    title,
-  });
-};
-export const editTodoIndex = (boardID, listID, todoID, index) => {
-  return axios.put('/boards/todos/index', {
-    boardID,
-    listID,
-    todoID,
-    index,
-  });
-};
-export const editTodoDescription = (boardID, listID, todoID, description) => {
-  return axios.put('/boards/todos/description', {
-    boardID,
-    listID,
-    todoID,
-    description,
+    document,
   });
 };
 
@@ -108,7 +99,7 @@ export const deleteTodo = (boardID, listID, todoID) => {
 
 // Control de usuarios
 export const register = async (username, password) => {
-  return axios.post(`/register`, {
+  return axios.post(`/user/register`, {
     username,
     password,
   });
@@ -116,7 +107,7 @@ export const register = async (username, password) => {
 
 export const login = (username, password) => {
   return axios.post(
-    `/login`,
+    `/user/login`,
     {
       username,
       password,
@@ -128,9 +119,10 @@ export const login = (username, password) => {
 };
 
 export const logout = () => {
-  return axios.get('/logout');
+  return axios.get('/user/logout');
 };
 
-export const checkLogin = () => {
-  return axios.get('/checkLogin');
+// Auth
+export const refreshToken = () => {
+  return axios.get('/auth/refresh');
 };

@@ -1,7 +1,7 @@
 import express from 'express';
 import BoardController from '../controllers/board.js';
 import ListController from '../controllers/list.js';
-import { verifyJWT } from '../middlewares/verifyJWT.js';
+// import { verifyJWT } from '../middlewares/verifyJWT.js';
 const router = express.Router();
 
 router
@@ -21,9 +21,7 @@ router
 router
   .route('/todos')
   .post(BoardController.postTodoItems)
-  .delete(BoardController.deleteTodo);
-router.route('/todos/title').put(BoardController.editTodoTitle);
-router.route('/todos/description').put(BoardController.editTodoDescription);
-router.route('/todos/index').put(BoardController.editTodoIndex);
+  .delete(BoardController.deleteTodo)
+  .patch(BoardController.patchTodo);
 
 export default router;

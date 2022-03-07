@@ -186,81 +186,33 @@ export default class BoardsDAO {
     }
   }
 
-  static editTodoTitle(boardID, listID, todoID, title) {
+  static patchTodo(boardID, listID, todoID, document) {
     try {
       boardID = new ObjectId(boardID);
       const filter = { _id: boardID };
-
       const arrayFilters = [
         { 'list.id': { $eq: listID } },
         { 'todo.id': { $eq: todoID } },
       ];
+
+      //* Recuperamos key/value del objeto
+      [document] = Object.entries(document);
+      const identifier = `todo_lists.$[list].todos.$[todo].${[document[0]]}`;
 
       const result = boards.updateOne(
         filter,
         {
           $set: {
-            'todo_lists.$[list].todos.$[todo].title': title,
+            [identifier]: document[1],
           },
         },
         { arrayFilters }
       );
 
+      console.log(result);
       return result.modifiedCount;
     } catch (error) {
-      throw new Error(`Error al editar TODO: ${error}`);
-    }
-  }
-
-  static async editTodoDescription(boardID, listID, todoID, description) {
-    try {
-      boardID = new ObjectId(boardID);
-      const filter = { _id: boardID };
-
-      const arrayFilters = [
-        { 'list.id': { $eq: listID } },
-        { 'todo.id': { $eq: todoID } },
-      ];
-
-      const result = await boards.updateOne(
-        filter,
-        {
-          $set: {
-            'todo_lists.$[list].todos.$[todo].description': description,
-          },
-        },
-        { arrayFilters }
-      );
-
-      return result.modifiedCount;
-    } catch (error) {
-      throw new Error(`Error al editar TODO: ${error}`);
-    }
-  }
-
-  static async editTodoIndex(boardID, listID, todoID, index) {
-    try {
-      boardID = new ObjectId(boardID);
-      const filter = { _id: boardID };
-
-      const arrayFilters = [
-        { 'list.id': { $eq: listID } },
-        { 'todo.id': { $eq: todoID } },
-      ];
-
-      const result = await boards.updateOne(
-        filter,
-        {
-          $set: {
-            'todo_lists.$[list].todos.$[todo].index': index,
-          },
-        },
-        { arrayFilters }
-      );
-
-      return result.modifiedCount;
-    } catch (error) {
-      throw new Error(`Error al editar TODO: ${error}`);
+      return { message: `Algo ha salido mal ${error.message}` };
     }
   }
 }

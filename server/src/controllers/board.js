@@ -5,12 +5,7 @@ class TablonController {
     const id = req.params.id;
     let boards;
 
-    if (!id || typeof id !== 'string') {
-      return res.status(400).json({
-        message: 'Datos para obtener tablero incompletos',
-        error: true,
-      });
-    }
+    if (!id || typeof id !== 'string') return res.sendStatus(400);
 
     try {
       boards = await boardsDAO.getBoards(id);
@@ -24,12 +19,7 @@ class TablonController {
 
   async postBoard(req, res) {
     const { ownerID, name } = req.body;
-    if (!name || !ownerID) {
-      return res.status(400).json({
-        message: 'Datos para añadir nuevo tablero incompletos',
-        error: true,
-      });
-    }
+    if (!name || !ownerID) return res.sendStatus(400);
 
     try {
       const boardData = { name, owner: ownerID, todo_lists: [] };
@@ -46,15 +36,11 @@ class TablonController {
 
   async patchBoard(req, res) {
     const { boardID, name } = req.body;
-    if (!boardID || (!name && typeof name !== 'string')) {
-      return res.status(400).json({
-        message: 'Bad request',
-        error: true,
-      });
-    }
+    if (!boardID || (!name && typeof name !== 'string'))
+      return res.sendStatus(400);
 
     try {
-      let modifiedCount = await boardsDAO.patchBoard(boardID, name);
+      const modifiedCount = await boardsDAO.patchBoard(boardID, name);
 
       if (modifiedCount === 0) {
         return res.status(200).json({
@@ -73,11 +59,10 @@ class TablonController {
 
   async deleteBoard(req, res) {
     const { boardID } = req.body;
-    if (!boardID)
-      return res.status(400).json({ message: 'Bad request', error: true });
+    if (!boardID) return res.sendStatus(400);
 
     try {
-      let deletedCount = boardsDAO.deleteBoard(boardID);
+      const deletedCount = boardsDAO.deleteBoard(boardID);
       if (!deletedCount) {
         return res.status(200).json({
           message: 'No se ha podido eliminar el tablero',
@@ -99,14 +84,15 @@ class TablonController {
 
   async postTodoItems(req, res) {
     const { boardID, listID, todos } = req.body;
-    if (!Array.isArray(todos) || todos.length === 0 || !boardID) {
-      return res
-        .status(400)
-        .json({ message: 'Datos para añadir todo incompleto', error: true });
-    }
+    if (!boardID || !listID || !Array.isArray(todos) || todos.length === 0)
+      return res.sendStatus(400);
 
     try {
-      let modifiedCount = await boardsDAO.postTodoItems(boardID, listID, todos);
+      const modifiedCount = await boardsDAO.postTodoItems(
+        boardID,
+        listID,
+        todos
+      );
 
       if (modifiedCount === 0) {
         return res.status(200).json({
@@ -129,10 +115,10 @@ class TablonController {
   deleteTodo(req, res) {
     const { boardID, listID, todoID } = req.body;
     if (!boardID || isNaN(parseFloat(listID)) || isNaN(parseFloat(todoID)))
-      return res.status(400).json({ message: 'Bad request', error: true });
+      return res.sendStatus(400);
 
     try {
-      let deletedCount = boardsDAO.deleteTodo(boardID, listID, todoID);
+      const deletedCount = boardsDAO.deleteTodo(boardID, listID, todoID);
       if (!deletedCount) {
         return res.status(200).json({
           message: 'No se ha podido eliminar la tarea',
@@ -152,105 +138,33 @@ class TablonController {
     }
   }
 
-  editTodoTitle(req, res) {
-    const { boardID, listID, todoID, title } = req.body;
-    if (
-      !boardID ||
-      isNaN(parseFloat(listID)) ||
-      isNaN(parseFloat(todoID)) ||
-      typeof title !== 'string'
-    ) {
-      return res.status(400).json({ message: 'Bad request', error: true });
-    }
-
+  async patchTodo(req, res) {
+    const { boardID, listID, todoID, document } = req.body;
+    const validKeys = ['title', 'index', 'description'];
     try {
-      let modifiedCount = boardsDAO.editTodoTitle(
+      console.log(req.body);
+
+      if (
+        !boardID ||
+        isNaN(parseFloat(listID)) ||
+        isNaN(parseFloat(todoID)) ||
+        !(document?.keys[0] in validKeys)
+      ) {
+        return res.sendStatus(400);
+      }
+
+      const modifiedCount = await boardsDAO.patchTodo(
         boardID,
         listID,
         todoID,
-        title
+        document
       );
 
-      if (modifiedCount === 0) {
-        return res.status(200).json({
-          message: 'No se ha podido editar la tarea',
-          error: true,
-        });
-      }
+      if (modifiedCount === 0) return res.sendStatus(400);
 
-      return res
-        .status(201)
-        .json({ message: 'Tarea editada correctamente ✔️', error: false });
+      return res.sendStatus(200);
     } catch (error) {
-      return res.status(500).json({ message: error.message, error: true });
-    }
-  }
-
-  editTodoIndex(req, res) {
-    const { boardID, listID, todoID, index } = req.body;
-    if (
-      !boardID ||
-      isNaN(parseFloat(listID)) ||
-      isNaN(parseFloat(todoID)) ||
-      isNaN(parseFloat(index))
-    ) {
-      return res.status(400).json({ message: 'Bad request', error: true });
-    }
-
-    try {
-      let modifiedCount = boardsDAO.editTodoIndex(
-        boardID,
-        listID,
-        todoID,
-        index
-      );
-
-      if (modifiedCount === 0) {
-        return res.status(200).json({
-          message: 'No se ha podido editar la tarea',
-          error: true,
-        });
-      }
-
-      return res
-        .status(201)
-        .json({ message: 'Tarea editada correctamente ✔️', error: false });
-    } catch (error) {
-      return res.status(500).json({ message: error.message, error: true });
-    }
-  }
-
-  editTodoDescription(req, res) {
-    const { boardID, listID, todoID, description } = req.body;
-    if (
-      !boardID ||
-      isNaN(parseFloat(listID)) ||
-      isNaN(parseFloat(todoID)) ||
-      typeof description !== 'string'
-    ) {
-      return res.status(400).json({ message: 'Bad request', error: true });
-    }
-
-    try {
-      let modifiedCount = boardsDAO.editTodoDescription(
-        boardID,
-        listID,
-        todoID,
-        description
-      );
-
-      if (modifiedCount === 0) {
-        return res.status(200).json({
-          message: 'No se ha podido editar la tarea',
-          error: true,
-        });
-      }
-
-      return res
-        .status(201)
-        .json({ message: 'Tarea editada correctamente ✔️', error: false });
-    } catch (error) {
-      return res.status(500).json({ message: error.message, error: true });
+      return res.status(500).json(`Algo ha ido mal: ${error.message}`);
     }
   }
 }
