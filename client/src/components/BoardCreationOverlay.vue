@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { postBoard } from '../api.js';
+import { postBoard } from '@/api/api.js';
 export default {
   name: 'BoardCreationOverlay',
   props: {

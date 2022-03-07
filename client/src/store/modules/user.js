@@ -2,10 +2,10 @@ import { getBoardsById } from '@/api.js';
 
 let state = {
   username: '',
-  profilePic: null,
-  accessToken: '',
   id: '',
+
   loggedIn: false,
+  profilePic: null,
   boards: [],
 };
 
@@ -13,9 +13,9 @@ const mutations = {
   changeUserStatus(state) {
     state.loggedIn = !state.loggedIn;
   },
-  setUser(state, { username, id, token }) {
+  setUser(state, { username, id }) {
     state.username = username;
-    state.accessToken = token;
+
     state.id = id;
   },
   setUserBoards(state, boards) {
@@ -26,17 +26,17 @@ const mutations = {
   },
   resetUser(state) {
     state.username = '';
-    state.accessToken = '';
     state.id = '';
+
     state.loggedIn = false;
-    state.boards = [];
     state.profilePic = null;
+    state.boards = [];
   },
 };
 
 const actions = {
-  setUser({ commit }, { username, token, id }) {
-    commit('setUser', { username, token, id });
+  setUser({ commit }, { username, id }) {
+    commit('setUser', { username, id });
   },
   fetchBoards({ commit, state }) {
     if (!state.id) return console.log('User ID no definido');

@@ -7,9 +7,11 @@
         sit a hendrerit leo pellentesque consectetur consectetur portaest lacus
         orci mi pellentesque varius.
       </p>
-      <v-btn class="register-btn">
-        Regístrate gratis
-      </v-btn>
+      <router-link :to="{ name: 'register' }">
+        <v-btn class="register-btn">
+          Regístrate gratis
+        </v-btn>
+      </router-link>
     </main>
     <HomeCarrousel />
   </section>
@@ -48,11 +50,12 @@ export default {
       color: var(--text1);
       line-height: 2.8rem;
 
-      margin: 2rem 0 0.8rem 0;
+      margin: 1rem 0 0.8rem 0;
     }
 
     p {
       line-height: 1.75rem;
+      color: var(--text1);
 
       margin-bottom: 2rem;
     }

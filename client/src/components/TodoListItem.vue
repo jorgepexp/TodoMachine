@@ -81,13 +81,7 @@
 </template>
 
 <script>
-import {
-  editTodoTitle,
-  editTodoIndex,
-  editTodoDescription,
-  deleteTodo,
-  addTodoItems,
-} from '@/api.js';
+import { patchTodo, deleteTodo, addTodoItems } from '@/api.js';
 export default {
   name: 'TodoItem',
   //? Datos de la lista padre
@@ -150,12 +144,9 @@ export default {
     async editTodoTitle() {
       this.editNameComposer = false;
       if (this.hasTitleChanged) {
-        await editTodoTitle(
-          this.boardID,
-          this.parentListId,
-          this.id,
-          this.todoTitle
-        );
+        await patchTodo(this.boardID, this.parentListId, this.id, {
+          title: this.todoTitle,
+        });
         this.$store.dispatch('fetchBoards');
       }
       this.hasTitleChanged = false;
@@ -168,12 +159,9 @@ export default {
       if (this.todoDescription) {
         if (this.hasDescriptionChanged) {
           this.hasDescriptionChanged = false;
-          await editTodoDescription(
-            this.boardID,
-            this.parentListId,
-            this.id,
-            this.todoDescription
-          ).catch(error => console.error(error));
+          await patchTodo(this.boardID, this.parentListId, this.id, {
+            description: this.todoDescription,
+          }).catch(error => console.error(error));
           this.$store.dispatch('fetchBoards');
         }
       }
@@ -193,7 +181,6 @@ export default {
       ev.dataTransfer.dropEffect = 'move';
       ev.dataTransfer.effectAllowed = 'move';
     },
-    // TODO Este método hace demasiadas cosas
     async onDrop(ev) {
       // Evitamos error en caso de que se dropee otro elemento en la zona
       if (!ev.dataTransfer.getData('todo-data')) return;
@@ -234,19 +221,16 @@ export default {
         return;
       }
 
-      const firstRequest = editTodoIndex(
+      const firstRequest = patchTodo(
         this.boardID,
         dropZoneID,
         parseInt(draggedItemID),
-        this.index
+        { index: this.index }
       );
 
-      const secondRequest = editTodoIndex(
-        this.boardID,
-        dropZoneID,
-        this.id,
-        parseInt(draggedItemIndex)
-      );
+      const secondRequest = patchTodo(this.boardID, dropZoneID, this.id, {
+        index: parseInt(draggedItemIndex),
+      });
 
       await Promise.all([firstRequest, secondRequest]).catch(error =>
         console.error(error)

@@ -166,7 +166,7 @@
 </template>
 
 <script>
-import { logout } from '../api.js';
+import { logout } from '@/api/api.js';
 import BoardCreationOverlay from './BoardCreationOverlay.vue';
 export default {
   name: 'AppNav',
@@ -190,6 +190,7 @@ export default {
     },
   },
   methods: {
+    // Enviar una petición al backend para remover la cookie del navegador
     logoutUser() {
       logout()
         .then(async () => {

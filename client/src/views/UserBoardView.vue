@@ -7,7 +7,7 @@
           <v-btn
             v-if="!editBoardNameComposer"
             @click="editBoardNameComposer = true"
-            class="ml-4"
+            class="ml-6"
             text
             outlined
           >

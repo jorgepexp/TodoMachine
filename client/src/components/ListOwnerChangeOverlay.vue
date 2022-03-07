@@ -81,7 +81,7 @@ import {
   getBoardsById,
   postTodoList,
   deleteList,
-} from '../api.js';
+} from '@/api/api.js';
 export default {
   name: 'ListOwnerChangeOverlay',
   props: {
