@@ -190,7 +190,6 @@ export default {
     },
   },
   methods: {
-    // Enviar una petición al backend para remover la cookie del navegador
     logoutUser() {
       logout()
         .then(async () => {

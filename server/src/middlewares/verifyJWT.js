@@ -8,7 +8,6 @@ export const verifyJWT = (req, res, next) => {
 
   jwt.verify(token, process.env.ACCESS_SECRET, (err, decoded) => {
     if (err) return res.sendStatus(403);
-    console.log(decoded);
     req.user = decoded.username;
     next();
   });

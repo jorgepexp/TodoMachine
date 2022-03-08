@@ -142,17 +142,14 @@ class TablonController {
     const { boardID, listID, todoID, document } = req.body;
     const validKeys = ['title', 'index', 'description'];
     try {
-      console.log(req.body);
-
       if (
         !boardID ||
         isNaN(parseFloat(listID)) ||
         isNaN(parseFloat(todoID)) ||
-        !(document?.keys[0] in validKeys)
+        !validKeys.includes(Object.keys(document)[0])
       ) {
         return res.sendStatus(400);
       }
-
       const modifiedCount = await boardsDAO.patchTodo(
         boardID,
         listID,

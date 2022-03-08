@@ -81,7 +81,7 @@
 </template>
 
 <script>
-import { patchTodo, deleteTodo, addTodoItems } from '@/api.js';
+import { patchTodo, deleteTodo, addTodoItems } from '@/api/api';
 export default {
   name: 'TodoItem',
   //? Datos de la lista padre
@@ -133,7 +133,7 @@ export default {
   methods: {
     deleteTodo() {
       deleteTodo(this.boardID, this.parentListId, this.id).then(response => {
-        if (response.status === 200 && !response.error) {
+        if (response.status === 200) {
           this.editItemOverlay = false;
           this.$store.dispatch('fetchBoards');
           return;
@@ -146,6 +146,13 @@ export default {
       if (this.hasTitleChanged) {
         await patchTodo(this.boardID, this.parentListId, this.id, {
           title: this.todoTitle,
+        }).then(response => {
+          if (response.status === 200) {
+            this.$store.dispatch('fetchBoards');
+            return;
+          } else {
+            console.log(response);
+          }
         });
         this.$store.dispatch('fetchBoards');
       }
@@ -156,14 +163,20 @@ export default {
       this.editItemOverlay = false;
     },
     async editTodoDescription() {
-      if (this.todoDescription) {
-        if (this.hasDescriptionChanged) {
-          this.hasDescriptionChanged = false;
-          await patchTodo(this.boardID, this.parentListId, this.id, {
-            description: this.todoDescription,
-          }).catch(error => console.error(error));
-          this.$store.dispatch('fetchBoards');
-        }
+      if (this.todoDescription && this.hasDescriptionChanged) {
+        this.hasDescriptionChanged = false;
+        await patchTodo(this.boardID, this.parentListId, this.id, {
+          description: this.todoDescription,
+        })
+          .then(response => {
+            if (response.status === 200) {
+              this.$store.dispatch('fetchBoards');
+              return;
+            } else {
+              console.log(response);
+            }
+          })
+          .catch(error => console.error(error));
       }
       this.hasDescriptionChanged = false;
     },

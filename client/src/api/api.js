@@ -79,12 +79,16 @@ export const addTodoItems = (boardID, listID, todos) => {
 };
 
 export const patchTodo = (boardID, listID, todoID, document) => {
-  return axios.patch('/boards/todos/', {
-    boardID,
-    listID,
-    todoID,
-    document,
-  });
+  return axios.patch(
+    '/boards/todos/',
+    {
+      boardID,
+      listID,
+      todoID,
+      document,
+    },
+    { withCredentials: true }
+  );
 };
 
 export const deleteTodo = (boardID, listID, todoID) => {
@@ -119,10 +123,13 @@ export const login = (username, password) => {
 };
 
 export const logout = () => {
-  return axios.get('/user/logout');
+  axios.defaults.headers.common['Authorization'] = '';
+  return axios.get('/user/logout', {
+    withCredentials: true,
+  });
 };
 
-// Auth
-export const refreshToken = () => {
-  return axios.get('/auth/refresh');
-};
+// // Auth
+// export const refreshToken = () => {
+//   return axios.get('/auth/refresh');
+// };

@@ -1,9 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import { getUserByUsername } from '@/api';
+import { getUserByUsername } from '@/api/api';
 import store from '@/store/index.js';
-const isUserLoggedIn = store.state.user.loggedIn;
-const username = store.state.user.username;
 
 Vue.use(VueRouter);
 
@@ -20,8 +18,11 @@ const routes = [
       import(/*webpackChunkName: "HomeView"*/ '../views/HomeView.vue'),
     // * Hook de ruta. Si el usuario está logeado redirigimos desde Home hacia sus tableros
     beforeEnter: (to, from, next) => {
-      if (isUserLoggedIn) {
-        next({ name: 'mainBoard', params: { username } });
+      if (store.state.user.loggedIn) {
+        next({
+          name: 'mainBoard',
+          params: { username: store.state.user.username },
+        });
       } else {
         next();
       }

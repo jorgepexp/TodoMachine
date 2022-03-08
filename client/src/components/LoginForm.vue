@@ -2,11 +2,17 @@
   <div id="login-form">
     <h2>Formulario de inicio de sesión</h2>
 
-    <v-form ref="form" class="login-form" v-model="valid">
+    <v-form
+      ref="form"
+      class="login-form"
+      v-model="valid"
+      @submit.prevent="validate"
+    >
       <v-text-field
         v-model="username"
         @keydown.enter="validate"
         :rules="usernameRules"
+        :dark="this.$store.state.darkTheme"
         label="Usuario"
         required
         autofocus
@@ -19,6 +25,7 @@
         :rules="passwordRules"
         :append-icon="passwordShown ? 'mdi-eye' : 'mdi-eye-off'"
         :type="passwordShown ? 'text' : 'password'"
+        :dark="this.$store.state.darkTheme"
         label="Contraseña"
         counter
         required
@@ -34,17 +41,18 @@
           >Iniciar sesión</v-btn
         >
       </div>
-      <a
-        ><router-link to="/todomachine/registro"
-          >¿Todavía no estás registrado?</router-link
-        ></a
-      >
     </v-form>
+    <a
+      ><router-link to="/todomachine/registro"
+        >¿Todavía no estás registrado?</router-link
+      ></a
+    >
   </div>
 </template>
 
 <script>
-import { login } from '../api.js';
+import { login } from '@/api/api.js';
+// import axios from 'axios';
 
 export default {
   data() {
@@ -67,16 +75,17 @@ export default {
     },
     async sendForm() {
       try {
-        login(this.username, this.password).then(response => {
+        login(this.username, this.password).then(async response => {
           if (response.status === 200) {
             this.$store.dispatch('setUser', {
               username: this.username,
               id: response.data.id,
-              token: response.data.token,
+              accessToken: response.data.accessToken,
             });
-            this.$store.commit('changeUserStatus');
+
             this.getRandomPfp();
-            this.$store.dispatch('fetchBoards');
+            this.$store.commit('changeUserStatus');
+            await this.$store.dispatch('fetchBoards');
 
             this.$router.push({
               name: 'mainBoard',
@@ -113,10 +122,6 @@ export default {
   margin: 0.5rem 1rem;
 }
 
-.v-text-field input {
-  background-color: white !important;
-}
-
 h2 {
   text-align: center;
   color: var(--text1);
@@ -134,7 +139,7 @@ h2 {
   }
 }
 
-.button-container + a {
+.login-form + a {
   display: flex;
   justify-content: center;
 

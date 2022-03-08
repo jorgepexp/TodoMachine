@@ -113,9 +113,9 @@
 </template>
 
 <script>
-import TodoList from '../components/TodoList.vue';
-import TodoItem from '../components/TodoListItem.vue';
-import { patchBoard, deleteBoard, postTodoList } from '@/api.js';
+import TodoList from '@/components/TodoList.vue';
+import TodoItem from '@/components/TodoListItem.vue';
+import { patchBoard, deleteBoard, postTodoList } from '@/api/api';
 
 export default {
   name: 'UserBoardView',

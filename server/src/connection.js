@@ -15,7 +15,6 @@ export default async function connect() {
       },
     });
   } catch (error) {
-    console.log(error.stack);
     process.exit(1);
   }
   return client;

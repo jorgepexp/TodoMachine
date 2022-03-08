@@ -162,13 +162,13 @@ export default class BoardsDAO {
     }
   }
 
-  static deleteTodo(boardID, listID, todoID) {
+  static async deleteTodo(boardID, listID, todoID) {
     try {
       boardID = new ObjectId(boardID);
       const filter = { _id: boardID };
       const arrayFilters = [{ 'list.id': listID }];
 
-      const result = boards.updateOne(
+      const result = await boards.updateOne(
         filter,
         {
           $pull: {
@@ -186,7 +186,7 @@ export default class BoardsDAO {
     }
   }
 
-  static patchTodo(boardID, listID, todoID, document) {
+  static async patchTodo(boardID, listID, todoID, document) {
     try {
       boardID = new ObjectId(boardID);
       const filter = { _id: boardID };
@@ -199,7 +199,7 @@ export default class BoardsDAO {
       [document] = Object.entries(document);
       const identifier = `todo_lists.$[list].todos.$[todo].${[document[0]]}`;
 
-      const result = boards.updateOne(
+      const result = await boards.updateOne(
         filter,
         {
           $set: {
@@ -208,8 +208,6 @@ export default class BoardsDAO {
         },
         { arrayFilters }
       );
-
-      console.log(result);
       return result.modifiedCount;
     } catch (error) {
       return { message: `Algo ha salido mal ${error.message}` };

@@ -93,7 +93,7 @@
 </template>
 
 <script>
-import { addTodoItems, deleteList, editList, postTodoList } from '@/api.js';
+import { addTodoItems, deleteList, editList, postTodoList } from '@/api/api';
 import ListOwnerChangeOverlay from './ListOwnerChangeOverlay.vue';
 export default {
   name: 'TodoList',

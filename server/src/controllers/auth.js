@@ -21,7 +21,7 @@ export const handleRefreshToken = async (req, res) => {
         process.env.ACCESS_SECRET,
         { expiresIn: '5m' }
       );
-      return res.json({ accessToken });
+      return res.status(200).json({ accessToken });
     });
   } catch (error) {
     return res
