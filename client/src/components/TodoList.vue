@@ -9,7 +9,7 @@
     >
       <div class="task-name">
         <p v-if="!editNameComposer" class="mb-0">{{ listName }}</p>
-        <!-- TODO Bg color estático. Cambiar -->
+
         <v-textarea
           v-if="editNameComposer"
           class="edit-name-composer"
@@ -43,14 +43,12 @@
           </template>
 
           <v-list>
-            <v-list-item @click="deleteList">
-              <v-list-item-title>Borrar lista</v-list-item-title>
-            </v-list-item>
-
-            <v-list-item @click="transferList">
-              <v-list-item-title>Mover lista</v-list-item-title>
-            </v-list-item>
-
+            <ListBoardChangeOverlay
+              :listId="id"
+              :listName="name"
+              :boardId="boardID"
+              :todos="todos"
+            />
             <ListOwnerChangeOverlay
               :listId="id"
               :boardId="boardID"
@@ -58,6 +56,10 @@
               :index="index"
               :todos="todos"
             />
+
+            <v-list-item @click="deleteList">
+              <v-list-item-title>Borrar lista</v-list-item-title>
+            </v-list-item>
           </v-list>
         </v-menu>
       </div>
@@ -93,11 +95,13 @@
 </template>
 
 <script>
-import { addTodoItems, deleteList, editList, postTodoList } from '@/api/api';
+import { addTodoItems, deleteList, editList } from '@/api/api';
 import ListOwnerChangeOverlay from './ListOwnerChangeOverlay.vue';
+import ListBoardChangeOverlay from './ListBoardChangeOverlay.vue';
 export default {
   name: 'TodoList',
   components: {
+    ListBoardChangeOverlay,
     ListOwnerChangeOverlay,
   },
   props: {
@@ -194,22 +198,6 @@ export default {
           .catch(error => console.error(error.message));
       }
       this.hasListNameChanged = false;
-    },
-    // TODO Esto
-    async transferList() {
-      await postTodoList(
-        this.selectedBoardId,
-        this.listId,
-        this.name,
-        this.index,
-        this.todos
-      )
-        .then(response => console.log(response))
-        .catch(error => console.log(error));
-
-      await deleteList(this.boardId, this.listId)
-        .then(response => console.log(response))
-        .catch(error => console.log(error));
     },
     onDragStart(ev) {
       ev.dataTransfer.setData(

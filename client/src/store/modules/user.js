@@ -21,6 +21,9 @@ const mutations = {
   setUserBoards(state, boards) {
     state.boards = [...boards];
   },
+  setUserToken(state, token) {
+    state.accessToken = token;
+  },
   setUserProfilePicture(state, { profilePic }) {
     state.profilePic = profilePic;
   },

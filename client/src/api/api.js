@@ -15,67 +15,95 @@ export const patchUser = (filters, document) => {
 
 // Tablones
 export const getBoardsById = ownerID => {
-  return axios.get(`/boards/${ownerID}`);
+  return axios.get(`/boards/${ownerID}`, { withCredentials: true });
 };
 
 export const postBoard = (ownerID, name) => {
-  return axios.post('/boards', {
-    ownerID,
-    name,
-  });
+  return axios.post(
+    '/boards',
+    {
+      ownerID,
+      name,
+    },
+    { withCredentials: true }
+  );
 };
 
 export const patchBoard = (boardID, name) => {
-  return axios.patch('/boards', {
-    boardID,
-    name,
-  });
+  return axios.patch(
+    '/boards',
+    {
+      boardID,
+      name,
+    },
+    { withCredentials: true }
+  );
 };
 
 export const deleteBoard = boardID => {
-  return axios.delete('/boards', {
-    data: {
-      boardID,
+  return axios.delete(
+    '/boards',
+    {
+      data: {
+        boardID,
+      },
     },
-  });
+    { withCredentials: true }
+  );
 };
 
 // Listas
 export const postTodoList = (boardID, listID, name, index, todos) => {
-  return axios.post('/boards/list', {
-    boardID,
-    listID,
-    name,
-    index,
-    todos,
-  });
+  return axios.post(
+    '/boards/list',
+    {
+      boardID,
+      listID,
+      name,
+      index,
+      todos,
+    },
+    { withCredentials: true }
+  );
 };
 
 export const editList = (boardID, listID, index, name) => {
-  return axios.put(`/boards/list`, {
-    boardID,
-    listID,
-    index,
-    name,
-  });
+  return axios.put(
+    `/boards/list`,
+    {
+      boardID,
+      listID,
+      index,
+      name,
+    },
+    { withCredentials: true }
+  );
 };
 
 export const deleteList = (boardID, listID) => {
-  return axios.delete(`/boards/list`, {
-    data: {
-      boardID,
-      listID,
+  return axios.delete(
+    `/boards/list`,
+    {
+      data: {
+        boardID,
+        listID,
+      },
     },
-  });
+    { withCredentials: true }
+  );
 };
 
 // To Do's
 export const addTodoItems = (boardID, listID, todos) => {
-  return axios.post('/boards/todos', {
-    boardID,
-    listID,
-    todos,
-  });
+  return axios.post(
+    '/boards/todos',
+    {
+      boardID,
+      listID,
+      todos,
+    },
+    { withCredentials: true }
+  );
 };
 
 export const patchTodo = (boardID, listID, todoID, document) => {
@@ -92,13 +120,17 @@ export const patchTodo = (boardID, listID, todoID, document) => {
 };
 
 export const deleteTodo = (boardID, listID, todoID) => {
-  return axios.delete('/boards/todos', {
-    data: {
-      boardID,
-      listID,
-      todoID,
+  return axios.delete(
+    '/boards/todos',
+    {
+      data: {
+        boardID,
+        listID,
+        todoID,
+      },
     },
-  });
+    { withCredentials: true }
+  );
 };
 
 // Control de usuarios
@@ -128,8 +160,3 @@ export const logout = () => {
     withCredentials: true,
   });
 };
-
-// // Auth
-// export const refreshToken = () => {
-//   return axios.get('/auth/refresh');
-// };

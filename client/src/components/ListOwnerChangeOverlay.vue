@@ -1,20 +1,28 @@
 <template>
-  <div class="text-center">
+  <div id="list-owner-change-overlay">
     <v-list-item @click.stop="dialog = true">
-      <v-list-item-title>Cambiar propietario</v-list-item-title>
+      <v-list-item-title>Cambiar de propietario</v-list-item-title>
     </v-list-item>
 
     <v-dialog width="500" v-model="dialog">
-      <v-card class="rounded-lg">
-        <v-card-title class="text-h6 blue rounded-t">
-          Cambiar propietario de lista
-        </v-card-title>
+      <v-card class="card-container">
+        <!-- class="indigo darken-2 white--text rounded-t" -->
+        <v-row class="align-center">
+          <v-card-title>
+            Cambiar propietario de lista
+          </v-card-title>
+          <v-btn @click="dialog = !dialog" class="ml-auto mr-6" icon>
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-row>
+        <v-divider />
 
+        <v-card-subtitle class="body-1 mt-2">Busca el usuario</v-card-subtitle>
         <v-form
           ref="form"
           v-model="valid"
           lazy-validation
-          class="px-3 mt-2"
+          class="px-3"
           @submit.prevent="findUserBoards"
         >
           <v-text-field
@@ -125,27 +133,30 @@ export default {
   },
   methods: {
     findUserBoards() {
-      if (!this.$refs.form.validate()) {
-        return;
-      }
+      if (!this.$refs.form.validate()) return;
       this.loading = true;
 
-      getUserByUsername(this.username).then(response => {
-        if (!response.data.users.length) {
-          this.foundUserBoards = false;
-          this.loading = false;
-          return;
-        }
-        const ownerID = response.data.users[0]._id;
-        getBoardsById(ownerID)
-          .then(response => (this.foundUserBoards = response.data.boards))
-          .catch(error => {
-            console.error(error);
-          });
+      try {
+        getUserByUsername(this.username).then(response => {
+          if (!response.data.users.length) {
+            this.foundUserBoards = false;
+            this.loading = false;
+            return;
+          }
+          const ownerID = response.data.users[0]._id;
+          getBoardsById(ownerID)
+            .then(response => (this.foundUserBoards = response.data.boards))
+            .catch(error => {
+              console.error(error);
+            });
 
-        this.isUserFound = true;
+          this.isUserFound = true;
+          this.loading = false;
+        });
+      } catch (error) {
+        console.error(error.message);
         this.loading = false;
-      });
+      }
     },
     async changeListOwner() {
       await postTodoList(
@@ -191,4 +202,10 @@ export default {
 };
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+#list-owner-change-overlay {
+  .card-container {
+    overflow: hidden;
+  }
+}
+</style>

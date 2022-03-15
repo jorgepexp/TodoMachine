@@ -35,6 +35,7 @@
                   name: board.name,
                 },
               }"
+              class="blue accent-3 white--text"
             >
               <span>{{ board.name }}</span>
             </router-link>
@@ -163,16 +164,15 @@ export default {
         width: 130px;
         overflow-wrap: break-word;
 
-        background: lightskyblue;
         color: var(--text1);
-        border: 2px solid transparent;
+        // border: 1px solid transparent;
+        border-radius: 5px;
 
         padding: 0.6rem;
-        // margin-left: 1.2rem;
 
         &:hover {
           box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
-          border-color: #3178c6;
+          // border-color: #3178c6;
         }
       }
     }

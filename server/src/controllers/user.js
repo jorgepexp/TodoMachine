@@ -4,8 +4,6 @@ import bcrypt from 'bcrypt';
 
 class UserController {
   async getUsers(req, res) {
-    // Comprobamos los parámetros que nos han pasado en la llamada a la API
-    console.log('Entra');
     const usersPerPage = req.query.usersPerPage
       ? parseInt(req.query.usersPerPage, 10)
       : 20;
@@ -16,9 +14,11 @@ class UserController {
     else if (req.query.name) filters.name = req.query.name;
     else if (req.query.refreshToken)
       filters.refreshToken = req.query.refreshToken;
-    console.log(req.query);
-    console.log('Llega a pasar las declaraciones');
+
     let users = await usersDAO.getUsers({ filters, page, usersPerPage });
+    //* Retiramos la contraseña de la respuesta
+    users ?? [...users, (users[0].password = '')];
+
     let response = {
       users,
       page,
@@ -62,11 +62,7 @@ class UserController {
   async handleLogin(req, res) {
     try {
       const { username, password } = req.body;
-      if (!username || !password) {
-        return res.status(400).json({
-          message: 'Bad request',
-        });
-      }
+      if (!username || !password) return res.sendStatus(400);
 
       const filters = { username };
       const user = await usersDAO.getUsers({ filters });
@@ -76,22 +72,22 @@ class UserController {
       if (!(await bcrypt.compare(password, user[0].password)))
         return res.sendStatus(401);
 
-      const accessToken = generateAccessToken(user[0].username);
-      const refreshToken = generateRefreshToken(user[0].username);
+      const accessToken = generateAccessToken({ username: user[0].username });
+      const refreshToken = generateRefreshToken({ username: user[0].username });
 
       // * Introducimos el nuevo token en BD
       const filtros = { username };
       const document = { refreshToken };
       await usersDAO.patchUser(filtros, document);
 
+      // maxAge: 30 * 1000, // 30s seconds
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 1 day
-        sameSite: 'None',
+        sameSite: process.env.NODE_ENV !== 'development' ? 'None' : 'Lax',
         secure: process.env.NODE_ENV !== 'development',
       });
-
-      res.json({ accessToken });
+      res.status(200).json({ accessToken, id: user[0]._id });
     } catch (error) {
       return res.status(500).send({ message: error.message });
     }
@@ -117,7 +113,6 @@ class UserController {
         sameSite: 'None',
         secure: process.env.NODE_ENV !== 'development',
       });
-      console.log('refreshToken se ha encontrado y eliminado de BD');
       return res.sendStatus(204);
     }
 

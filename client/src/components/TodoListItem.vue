@@ -54,11 +54,11 @@
           </v-btn>
         </v-row>
 
-        <!-- TODO Cambiar color del subtitulo a uno con menos contraste -->
-        <div class="text-subtitle-1 mb-3 #424242--text">
+        <div class="text-subtitle-1 mb-5 grey--text text--darken-3">
           en la lista
           <span class="text-decoration-underline">{{ this.$parent.name }}</span>
         </div>
+        <p class="mb-1">Descripción</p>
         <v-textarea
           v-model="todoDescription"
           @blur="editTodoDescription"

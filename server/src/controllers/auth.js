@@ -7,19 +7,22 @@ export const handleRefreshToken = async (req, res) => {
     if (!cookies?.refreshToken) return res.sendStatus(401);
     const refreshToken = cookies.refreshToken;
     const filters = { filters: { refreshToken } };
-    console.log('Encuentra el token en las cookies');
-    const foundUser = await usersDAO.getUsers(filters);
 
+    const foundUser = await usersDAO.getUsers(filters);
     //* Si no se encuentra el token en BD lanzamos Forbidden
     if (foundUser?.length > 1) return res.sendStatus(403);
 
     //* Evalua el JWT
     jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err, decoded) => {
-      if (err) return res.sendStatus(403);
+      if (err || foundUser[0].username !== decoded.username)
+        return res.sendStatus(403);
+
       const accessToken = jwt.sign(
         { username: decoded.username },
         process.env.ACCESS_SECRET,
-        { expiresIn: '5m' }
+        {
+          expiresIn: '5m',
+        }
       );
       return res.status(200).json({ accessToken });
     });
@@ -38,6 +41,6 @@ export const generateAccessToken = function ({ username }) {
 
 export const generateRefreshToken = function ({ username }) {
   return jwt.sign({ username }, process.env.REFRESH_SECRET, {
-    expiresIn: '7d',
+    expiresIn: '1d',
   });
 };

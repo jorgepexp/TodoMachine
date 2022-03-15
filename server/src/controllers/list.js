@@ -4,42 +4,36 @@ class ListController {
     let { boardID, listID, name, index, todos = null } = req.body;
 
     if (
+      !boardID ||
       isNaN(parseFloat(listID)) ||
       !name ||
-      !boardID ||
       isNaN(parseFloat(index))
-    ) {
-      return res.status(400).json({
-        message: 'Datos para añadir nueva lista incompletos',
-        error: true,
-      });
-    }
+    )
+      return res.sendStatus(400);
 
     try {
       const listData = { boardID, listID, name, index, todos };
       let modifiedCount = await boardsDAO.postList(listData);
       if (modifiedCount === 0) {
-        return res.status(200).json({
+        return res.status(400).json({
           message: 'No se ha podido insertar la lista',
-          error: true,
         });
       }
 
-      return res
-        .status(201)
-        .json({ message: 'Lista añadida correctamente ✔️', error: false });
+      return res.sendStatus(201);
     } catch (error) {
-      return res.status(500).json({ message: error.message, error: true });
+      return res.status(500).json({ message: error.message });
     }
   }
 
   async editList(req, res) {
     const { boardID, listID, index, name } = req.body;
-    if (isNaN(parseFloat(listID)) || !boardID) {
-      return res.status(400).json({
-        message: 'Faltan datos para editar el nombre de la lista',
-        error: true,
-      });
+    if (
+      isNaN(parseFloat(listID)) ||
+      !boardID ||
+      (!isNaN(parseFloat(index)) && !name)
+    ) {
+      return res.sendStatus(400);
     }
 
     try {
@@ -51,43 +45,34 @@ class ListController {
       );
 
       if (modifiedCount === 0) {
-        return res.status(200).json({
+        return res.status(400).json({
           message: 'No se ha podido editar la lista',
-          error: true,
         });
       }
 
-      return res
-        .status(201)
-        .json({ message: 'Lista editada correctamente ✔️', error: false });
+      return res.sendStatus(201);
     } catch (error) {
-      return res.status(500).json({ message: error.message, error: true });
+      return res.status(500).json({ message: error.message });
     }
   }
 
   async deleteList(req, res) {
     const { boardID, listID } = req.body;
-    if (isNaN(parseFloat(listID)) || !boardID)
-      return res.status(400).json({ message: 'Bad request', error: true });
+    if (isNaN(parseFloat(listID)) || !boardID) return res.sendStatus(400);
 
     try {
       let deletedCount = await boardsDAO.deleteList(boardID, listID);
 
       if (deletedCount === 0) {
-        return res.status(200).json({
+        return res.status(400).json({
           message: 'No se ha podido eliminar la lista',
-          error: true,
         });
       }
 
-      return res.status(200).json({
-        message: 'Documento eliminado',
-        error: false,
-      });
+      return res.sendStatus(200);
     } catch (error) {
       return res.status(500).json({
-        message: 'No se ha podido eliminar la lista',
-        error: error.message,
+        message: `No se ha podido eliminar la lista: ${error.message}`,
       });
     }
   }

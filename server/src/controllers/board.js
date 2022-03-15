@@ -84,7 +84,12 @@ class TablonController {
 
   async postTodoItems(req, res) {
     const { boardID, listID, todos } = req.body;
-    if (!boardID || !listID || !Array.isArray(todos) || todos.length === 0)
+    if (
+      !boardID ||
+      isNaN(parseFloat(listID)) ||
+      !Array.isArray(todos) ||
+      todos.length === 0
+    )
       return res.sendStatus(400);
 
     try {
@@ -95,9 +100,8 @@ class TablonController {
       );
 
       if (modifiedCount === 0) {
-        return res.status(200).json({
+        return res.status(400).json({
           message: 'No se han podido insertar los todos',
-          error: true,
         });
       }
 
@@ -112,24 +116,20 @@ class TablonController {
     }
   }
 
-  deleteTodo(req, res) {
+  async deleteTodo(req, res) {
     const { boardID, listID, todoID } = req.body;
     if (!boardID || isNaN(parseFloat(listID)) || isNaN(parseFloat(todoID)))
       return res.sendStatus(400);
 
     try {
-      const deletedCount = boardsDAO.deleteTodo(boardID, listID, todoID);
+      const deletedCount = await boardsDAO.deleteTodo(boardID, listID, todoID);
       if (!deletedCount) {
-        return res.status(200).json({
+        return res.status(400).json({
           message: 'No se ha podido eliminar la tarea',
-          error: true,
         });
       }
 
-      return res.status(200).json({
-        message: 'Tarea eliminada',
-        error: false,
-      });
+      return res.sendStatus(200);
     } catch (error) {
       return res.status(500).json({
         message: 'No se ha podido eliminar la tarea',

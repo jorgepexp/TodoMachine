@@ -71,8 +71,7 @@ export default class BoardsDAO {
     try {
       boardID = new ObjectId(boardID);
       const query = { _id: boardID };
-      // El segundo parámetro es para borrar un solo doc como máximo
-      const result = await boards.remove(query, true);
+      const result = await boards.deleteOne(query);
       return result.deletedCount;
     } catch (error) {
       throw new Error(`Error borrando tablero: ${error}`);
@@ -133,7 +132,7 @@ export default class BoardsDAO {
       boardID = new ObjectId(boardID);
 
       const filter = { _id: boardID };
-      const result = await boards.update(filter, {
+      const result = await boards.updateOne(filter, {
         $pull: { todo_lists: { id: listID } },
       });
       return result.modifiedCount;
