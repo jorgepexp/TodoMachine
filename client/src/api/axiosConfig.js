@@ -2,6 +2,7 @@ import axios from 'axios';
 const serverPort = 9000;
 const BASE_URL = `http://localhost:${serverPort}`;
 import store from '@/store/index';
+import router from '@/router/index';
 
 axios.defaults.baseURL = BASE_URL;
 
@@ -39,8 +40,11 @@ axios.interceptors.response.use(
       return axios(prevRequest);
     }
     refresh = false;
-    // TODO Redirigir hacia página de login, recordando la última página visitada por el usuario
-    console.log('Ha expirado el token de refresco en BDD');
+
+    //* Si hay error es porque el JWT de refresco ha expirado, por lo tanto hacemos un friendly redirect hacia el login
+    await store.dispatch('resetUser').then(() => {
+      router.push({ name: 'login', params: { redirect: true } });
+    });
     return Promise.reject(error);
   }
 );

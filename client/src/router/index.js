@@ -33,6 +33,7 @@ const routes = [
     name: 'login',
     component: () =>
       import(/*webpackChunkName: "LoginView"*/ '../components/LoginForm.vue'),
+    props: true,
   },
   {
     path: '/todomachine/registro',

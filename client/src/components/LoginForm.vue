@@ -55,6 +55,12 @@ import { login } from '@/api/api.js';
 // import axios from 'axios';
 
 export default {
+  props: {
+    redirect: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
       valid: false,
@@ -87,10 +93,15 @@ export default {
             this.$store.commit('changeUserStatus');
             await this.$store.dispatch('fetchBoards');
 
-            this.$router.push({
-              name: 'mainBoard',
-              params: { username: this.$store.state.user.username },
-            });
+            //* Friendly login cuando expira el JWT de refresco
+            if (this.redirect) {
+              this.$router.go(-1);
+            } else {
+              this.$router.push({
+                name: 'mainBoard',
+                params: { username: this.$store.state.user.username },
+              });
+            }
           }
         });
       } catch (error) {

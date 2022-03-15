@@ -41,6 +41,9 @@ const actions = {
   setUser({ commit }, { username, id, accessToken }) {
     commit('setUser', { username, id, accessToken });
   },
+  resetUser({ commit }) {
+    commit('resetUser');
+  },
   fetchBoards({ commit, state }) {
     if (!state.id) return console.log('User ID no definido');
 

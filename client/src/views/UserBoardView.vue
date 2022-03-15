@@ -159,7 +159,7 @@ export default {
       return this.$store.getters.getBoardByName(this.name)._id;
     },
     isFavorite() {
-      return this.$store.getters.getBoardByName(this.name).favorite;
+      return this.$store.getters.getBoardByName(this.name)?.favorite;
     },
   },
   methods: {
@@ -212,10 +212,8 @@ export default {
         .catch(error => console.error(error));
     },
     toggleFavorite() {
-      console.log('Favorite?', this.isFavorite);
       patchBoard(this.boardID, { favorite: !this.isFavorite })
         .then(async response => {
-          console.log(response);
           if (response.status === 200) {
             await this.$store.dispatch('fetchBoards');
           }

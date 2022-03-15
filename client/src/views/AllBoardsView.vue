@@ -19,9 +19,35 @@
     </v-list>
 
     <v-list class="all-boards mt-10">
-      <v-list-item-title class="title"
-        ><span aria-hidden="true">✔️</span> Tableros
-        disponibles</v-list-item-title
+      <v-list-item-title class="title">
+        Tus tableros favoritos
+        <span aria-hidden="true">🌟</span></v-list-item-title
+      >
+      <div class="separator" aria-hidden="true"></div>
+      <div v-if="favoriteBoards.length" class="favorite-boards">
+        <div class="boards-container">
+          <div v-for="board in favoriteBoards" :key="board._id">
+            <router-link
+              :to="{
+                name: 'board',
+                params: {
+                  username: $store.state.user.username,
+                  name: board.name,
+                },
+              }"
+              class="teal darken-4 white--text"
+            >
+              <span>{{ board.name }}</span>
+            </router-link>
+          </div>
+        </div>
+      </div>
+      <p v-else class="no-favorites-msg">
+        Ningún tablero añadido a favoritos.
+      </p>
+
+      <v-list-item-title class="title">
+        Todos tus tableros <span aria-hidden="true">✔️</span></v-list-item-title
       >
       <div class="separator" aria-hidden="true"></div>
       <div v-if="userBoards.length" class="available-boards">
@@ -44,36 +70,6 @@
       </div>
       <p v-else class="no-boards-msg">
         No existe ningún tablero creado actualmente.
-      </p>
-
-      <v-list-item-title class="title"
-        ><span aria-hidden="true">🌟</span> Tableros
-        favoritos</v-list-item-title
-      >
-      <div class="separator" aria-hidden="true"></div>
-      <div v-if="favoriteBoards.length" class="favorite-boards">
-        <div class="boards-container">
-          <div
-            v-for="board in favoriteBoards"
-            :key="board._id"
-            class="list-item"
-          >
-            <router-link
-              :to="{
-                name: 'board',
-                params: {
-                  username: $store.state.user.username,
-                  name: board.name,
-                },
-              }"
-            >
-              <span>{{ board.name }}</span>
-            </router-link>
-          </div>
-        </div>
-      </div>
-      <p v-else class="no-favorites-msg">
-        Ningún tablero añadido a favoritos.
       </p>
     </v-list>
   </div>
@@ -107,7 +103,9 @@ export default {
     },
     favoriteBoards() {
       if (this.$store.state.user.boards.length) {
-        [this.$store.state.user.boards.find(board => board.favorite === true)];
+        return this.$store.state.user.boards.filter(
+          board => board.favorite === true
+        );
       }
       return [];
     },
