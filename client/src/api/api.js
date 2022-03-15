@@ -29,12 +29,12 @@ export const postBoard = (ownerID, name) => {
   );
 };
 
-export const patchBoard = (boardID, name) => {
+export const patchBoard = (boardID, document) => {
   return axios.patch(
     '/boards',
     {
       boardID,
-      name,
+      document,
     },
     { withCredentials: true }
   );

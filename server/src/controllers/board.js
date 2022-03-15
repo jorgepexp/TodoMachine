@@ -35,23 +35,18 @@ class TablonController {
   }
 
   async patchBoard(req, res) {
-    const { boardID, name } = req.body;
-    if (!boardID || (!name && typeof name !== 'string'))
-      return res.sendStatus(400);
+    const { boardID, document } = req.body;
+    const validKeys = ['name', 'favorite'];
 
     try {
-      const modifiedCount = await boardsDAO.patchBoard(boardID, name);
+      if (!boardID || !validKeys.includes(Object.keys(document)[0]))
+        return res.sendStatus(400);
 
-      if (modifiedCount === 0) {
-        return res.status(200).json({
-          message: 'No se ha podido editar el tablero',
-          error: true,
-        });
-      }
+      const modifiedCount = await boardsDAO.patchBoard(boardID, document);
 
-      return res
-        .status(201)
-        .json({ message: 'Tablero editado correctamente ✔️', error: false });
+      if (modifiedCount === 0) return res.sendStatus(400);
+
+      return res.sendStatus(200);
     } catch (error) {
       return res.status(500).json(`Algo ha ido mal: ${error.message}`);
     }

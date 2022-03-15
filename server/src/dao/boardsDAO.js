@@ -50,20 +50,23 @@ export default class BoardsDAO {
     }
   }
 
-  static async patchBoard(boardID, name) {
-    // Actualmente solo es capaz de editar nombre, pero podrá recibir más parámetros
+  static async patchBoard(boardID, document) {
     try {
       boardID = new ObjectId(boardID);
-      let filter = { _id: boardID };
+      const filter = { _id: boardID };
+
+      //* Recuperamos key/value del objeto
+      [document] = Object.entries(document);
+
       const result = await boards.updateOne(filter, {
         $set: {
-          name,
+          [document[0]]: document[1],
         },
       });
 
       return result.modifiedCount;
     } catch (error) {
-      throw new Error(`Error insertando nuevo tablero: ${error}`);
+      throw new Error(`Error editando tablero: ${error}`);
     }
   }
 

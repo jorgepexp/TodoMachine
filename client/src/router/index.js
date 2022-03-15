@@ -58,6 +58,7 @@ const routes = [
       requiredAuth: true,
     },
     beforeEnter: (to, from, next) => {
+      // TODO Esto está mal planteado
       getUserByUsername(to.params.username).then(response => {
         if (response.data?.users?.length) {
           next();

@@ -1,6 +1,5 @@
 <template>
   <div id="user-board-view">
-    <!-- TODO Color no reponsive -->
     <v-toolbar class="board-toolbar" elevation="0" dense>
       <v-row class="mt-2 d-flex align-center">
         <v-col class="edit-board-name-composer" sm="4">
@@ -24,6 +23,10 @@
             dense
             placeholder="Nuevo nombre del tablero..."
           ></v-text-field>
+
+          <v-btn @click="toggleFavorite" class="ml-4" icon>
+            <v-icon>{{ isFavorite ? 'mdi-star' : 'mdi-star-outline' }}</v-icon>
+          </v-btn>
         </v-col>
         <v-spacer></v-spacer>
 
@@ -37,10 +40,9 @@
           </template>
 
           <v-list>
-            <!-- TODO -->
-            <v-list-item>
+            <!-- <v-list-item>
               <v-list-item-title>Cambiar fondo</v-list-item-title>
-            </v-list-item>
+            </v-list-item> -->
 
             <v-list-item @click="deleteBoard">
               <v-list-item-title>Borrar tablero</v-list-item-title>
@@ -156,6 +158,9 @@ export default {
     boardID() {
       return this.$store.getters.getBoardByName(this.name)._id;
     },
+    isFavorite() {
+      return this.$store.getters.getBoardByName(this.name).favorite;
+    },
   },
   methods: {
     addTodoList(title) {
@@ -168,12 +173,12 @@ export default {
         title,
         this.autoIncrementIndex()
       ).then(response => {
-        if (response.status === 500) {
-          return console.table(response.data);
-        }
         if (response.status === 201) {
           this.$store.dispatch('fetchBoards');
           this.newListTitle = '';
+        }
+        if (response.status === 500) {
+          return console.table(response.data);
         }
       });
     },
@@ -181,24 +186,38 @@ export default {
       this.editBoardNameComposer = false;
       if (this.boardName && this.hasBoardNameChanged) {
         this.hasBoardNameChanged = false;
-        await patchBoard(this.boardID, this.boardName).catch(error =>
-          console.error(error)
-        );
-        await this.$store.dispatch('fetchBoards');
 
-        this.$router.push(
-          `/todomachine/${this.$store.state.user.username}/${this.boardName}`
-        );
+        await patchBoard(this.boardID, { name: this.boardName })
+          .then(async response => {
+            if (response.status === 200) {
+              await this.$store.dispatch('fetchBoards');
+              this.$router.push(
+                `/todomachine/${this.$store.state.user.username}/${this.boardName}`
+              );
+            }
+          })
+          .catch(error => console.error(error));
       }
     },
     deleteBoard() {
       deleteBoard(this.boardID)
         .then(async response => {
-          if (response.status === 200 && response.data.error === false) {
+          if (response.status === 200) {
             await this.$store.dispatch('fetchBoards');
             this.$router.push(
               `/todomachine/${this.$store.state.user.username}`
             );
+          }
+        })
+        .catch(error => console.error(error));
+    },
+    toggleFavorite() {
+      console.log('Favorite?', this.isFavorite);
+      patchBoard(this.boardID, { favorite: !this.isFavorite })
+        .then(async response => {
+          console.log(response);
+          if (response.status === 200) {
+            await this.$store.dispatch('fetchBoards');
           }
         })
         .catch(error => console.error(error));
