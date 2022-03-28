@@ -26,6 +26,12 @@
             autofocus
           >
           </v-text-field>
+          <v-card-text
+            v-if="error.isError"
+            class="red--text text--lighten-1 pa-0 font-weight-medium"
+          >
+            Error: {{ error.message }}
+          </v-card-text>
           <v-card-actions class="justify-end">
             <v-btn
               @click="validate"
@@ -62,6 +68,10 @@ export default {
       boardNameMaxLength: 30,
       dialog: false,
       valid: true,
+      error: {
+        isError: false,
+        message: 'Nombre de tablero ya en uso.',
+      },
     };
   },
   watch: {
@@ -70,12 +80,15 @@ export default {
     },
   },
   methods: {
-    // TODO Mostrar mensaje de error al utilizar un nombre de tablero ya en uso
     validate() {
       const isBoardNameUsed = this.$store.getters.getBoardByName(
         this.boardName
       );
-      if (this.$refs.form.validate() && !isBoardNameUsed) {
+      if (isBoardNameUsed) {
+        this.error.isError = true;
+        return;
+      }
+      if (this.$refs.form.validate()) {
         this.createNewBoard();
       }
     },

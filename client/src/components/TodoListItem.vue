@@ -5,9 +5,6 @@
     @dragstart="onDragStart"
     @drop.prevent="onDrop"
   >
-    <!-- 
-      @dragover.stop
-      @dragstart="dragStart($event)" -->
     <div class="item-container" @click="editItemOverlay = !editItemOverlay">
       <div class="item-content">
         {{ title }}
@@ -18,34 +15,33 @@
       v-model="editItemOverlay"
       max-width="500"
       transition="dialog-bottom-transition"
-      class="edit-item-overlay"
+      :dark="this.$store.state.darkTheme"
     >
-      <!-- TODO Conseguir que funcionen los estilos ;-;  -->
-      <v-card class="px-4 py-4 edit-item-overlay" min-width="500">
-        <v-row class="d-flex align-center">
-          <v-card-title class="px-3 pb-2 pt-2">
-            <span
+      <v-card class="pa-4" min-width="500">
+        <v-row align="center" class="pa-3">
+          <v-card-title class="pa-0">
+            <v-btn
               v-if="!editNameComposer"
               @click="editNameComposer = true"
-              class="text-h5 font-weight-bold pb-1"
-              >{{ todoTitle }}</span
+              class="px-2 mb-1 font-weight-bold text-body-1"
+              text
+              outlined
             >
-            <v-row no-gutters>
-              <v-col md="12">
-                <v-text-field
-                  v-if="editNameComposer"
-                  v-model="todoTitle"
-                  @keydown.enter.exact.prevent="editTodoTitle"
-                  @blur="editTodoTitle"
-                  outlined
-                  dense
-                  class="ma-0 pa-0"
-                  autofocus
-                  background-color="white"
-                >
-                </v-text-field>
-              </v-col>
-            </v-row>
+              {{ todoTitle }}
+            </v-btn>
+            <v-text-field
+              v-model="todoTitle"
+              v-if="editNameComposer"
+              @keydown.enter.exact.prevent="editTodoTitle"
+              @blur="editTodoTitle"
+              class="pa-0 mt-2"
+              autofocus
+              solo
+              outlined
+              dense
+              single-line
+            >
+            </v-text-field>
           </v-card-title>
           <v-btn icon class="ml-auto mr-1" @click="editItemOverlay = false">
             <v-icon>
@@ -54,11 +50,11 @@
           </v-btn>
         </v-row>
 
-        <div class="text-subtitle-1 mb-5 grey--text text--darken-3">
+        <v-card-subtitle class="">
           en la lista
           <span class="text-decoration-underline">{{ this.$parent.name }}</span>
-        </div>
-        <p class="mb-1">Descripción</p>
+        </v-card-subtitle>
+        <p class="mb-1">Descripción de la tarea</p>
         <v-textarea
           v-model="todoDescription"
           @blur="editTodoDescription"
@@ -147,14 +143,8 @@ export default {
         await patchTodo(this.boardID, this.parentListId, this.id, {
           title: this.todoTitle,
         }).then(response => {
-          if (response.status === 200) {
-            this.$store.dispatch('fetchBoards');
-            return;
-          } else {
-            console.log(response);
-          }
+          if (response.status === 200) this.$store.dispatch('fetchBoards');
         });
-        this.$store.dispatch('fetchBoards');
       }
       this.hasTitleChanged = false;
     },
@@ -169,12 +159,7 @@ export default {
           description: this.todoDescription,
         })
           .then(response => {
-            if (response.status === 200) {
-              this.$store.dispatch('fetchBoards');
-              return;
-            } else {
-              console.log(response);
-            }
+            if (response.status === 200) this.$store.dispatch('fetchBoards');
           })
           .catch(error => console.error(error));
       }
@@ -277,10 +262,14 @@ export default {
     }
   }
 
-  .edit-item-overlay div {
-    color: var(--surface2) !important;
-    background-color: var(--surface2) !important;
-    background-color: blue !important;
+  .v-text-field .v-input__control .v-input__slot {
+    min-height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .edit-item-overlay {
+    background-color: var(--surface1) !important;
   }
 }
 </style>

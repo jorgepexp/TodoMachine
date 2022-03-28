@@ -81,10 +81,10 @@ export default {
       try {
         register(this.username, this.password).then(async response => {
           if (response.status === 200) {
-            // TODO Manejar el refreshToken devuelto
             await this.$store.dispatch('setUser', {
               username: this.username,
               id: response.data.id,
+              accessToken: response.data.accessToken,
             });
 
             this.$store.commit('changeUserStatus');

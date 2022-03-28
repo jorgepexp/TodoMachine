@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import session from 'express-session';
+// import session from 'express-session';
 
 const SETTINGS = config();
 

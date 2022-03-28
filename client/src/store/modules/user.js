@@ -30,6 +30,7 @@ const mutations = {
   resetUser(state) {
     state.username = '';
     state.id = '';
+    // TODO Buscar otra manera más segura de almacenar el token de acceso
     state.accessToken = '';
     state.loggedIn = false;
     state.profilePic = null;

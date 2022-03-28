@@ -50,17 +50,17 @@ export default class BoardsDAO {
     }
   }
 
-  static async patchBoard(boardID, document) {
+  static async patchBoard(boardID, data) {
     try {
       boardID = new ObjectId(boardID);
       const filter = { _id: boardID };
 
       //* Recuperamos key/value del objeto
-      [document] = Object.entries(document);
+      [data] = Object.entries(data);
 
       const result = await boards.updateOne(filter, {
         $set: {
-          [document[0]]: document[1],
+          [data[0]]: data[1],
         },
       });
 
@@ -103,23 +103,22 @@ export default class BoardsDAO {
     }
   }
 
-  static async editList(boardID, listID, index, listName) {
+  static async patchList(boardID, listID, data) {
     try {
       boardID = new ObjectId(boardID);
 
       const filter = { _id: boardID };
       const arrayFilters = [{ 'list.id': { $eq: listID } }];
 
-      //Si han pasado un índice, ejecutamos esa query, si no, será el nombre el que se haya pasado
-      let data =
-        index !== undefined
-          ? { 'todo_lists.$[list].index': index }
-          : { 'todo_lists.$[list].name': listName };
+      //* Recuperamos key/value del objeto
+      [data] = Object.entries(data);
 
       const result = await boards.updateOne(
         filter,
         {
-          $set: data,
+          $set: {
+            [`todo_lists.$[list].${data[0]}`]: data[1],
+          },
         },
         { arrayFilters }
       );

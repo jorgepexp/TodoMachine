@@ -13,8 +13,8 @@
 
       <v-toolbar-title class="nav-title">
         <router-link :to="{ name: 'home' }">
-          <span class="font-weight-medium white--text">
-            TODO <span>MACHINE</span>
+          <span class="font-weight-medium white--text text-uppercase">
+            todo <span>machine</span>
           </span>
         </router-link>
       </v-toolbar-title>
@@ -139,7 +139,13 @@
 
     <!-- Profile sidebar  -->
     <!-- TODO Se puede trasladar a componente -->
-    <v-navigation-drawer right absolute temporary v-model="drawer">
+    <v-navigation-drawer
+      right
+      absolute
+      temporary
+      v-model="drawer"
+      :dark="this.$store.state.darkTheme"
+    >
       <v-list nav dense>
         <v-list-item>
           <v-list-item-content>
@@ -155,7 +161,7 @@
 
       <v-list dense>
         <v-list-item @click="logoutUser" class="logout-container">
-          <v-list-item-title>Logout</v-list-item-title>
+          <v-list-item-title>Cerrar sesión</v-list-item-title>
           <v-list-item-icon>
             <v-icon>mdi-logout</v-icon>
           </v-list-item-icon>
@@ -194,7 +200,7 @@ export default {
       logout()
         .then(async () => {
           this.drawer = false;
-          await this.$store.commit('resetUser');
+          await this.$store.dispatch('resetUser');
           await this.$router.push({ name: 'home' });
         })
         .catch(error => console.error(`Algo ha ido mal: ${error}`));

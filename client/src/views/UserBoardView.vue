@@ -1,8 +1,8 @@
 <template>
   <div id="user-board-view">
     <v-toolbar class="board-toolbar" elevation="0" dense>
-      <v-row class="mt-2 d-flex align-center">
-        <v-col class="edit-board-name-composer" sm="4">
+      <v-row class="mt-2 align-center">
+        <v-row class="edit-board-name-composer" align="center">
           <v-btn
             v-if="!editBoardNameComposer"
             @click="editBoardNameComposer = true"
@@ -17,17 +17,22 @@
             v-if="editBoardNameComposer"
             @blur="editBoardName"
             @keydown.enter.exact="editBoardName"
-            class="ml-7 mt-6"
+            class="edit-board-name-textfield ml-7 mt-6"
             autofocus
             solo
             dense
             placeholder="Nuevo nombre del tablero..."
           ></v-text-field>
-
-          <v-btn @click="toggleFavorite" class="ml-4" icon>
+          <v-btn
+            @click="toggleFavorite"
+            icon
+            color="black"
+            class="toggle-favorite-btn"
+          >
             <v-icon>{{ isFavorite ? 'mdi-star' : 'mdi-star-outline' }}</v-icon>
           </v-btn>
-        </v-col>
+        </v-row>
+
         <v-spacer></v-spacer>
 
         <v-menu offset-y>
@@ -43,7 +48,6 @@
             <!-- <v-list-item>
               <v-list-item-title>Cambiar fondo</v-list-item-title>
             </v-list-item> -->
-
             <v-list-item @click="deleteBoard">
               <v-list-item-title>Borrar tablero</v-list-item-title>
             </v-list-item>
@@ -74,7 +78,6 @@
         </todo-item>
       </todo-list>
 
-      <!-- TODO Conseguir que @blur funcione -->
       <v-form
         v-if="showTodoListComposer"
         ref="addNewListForm"
@@ -291,11 +294,19 @@ export default {
     background-color: var(--surface1) !important;
     transition: none !important;
 
-    .edit-board-name-composer > * {
-      color: var(--text1) !important;
-      border-color: var(--text1) !important;
+    .edit-board-name-composer {
+      margin-left: 0.8rem;
+
+      & > * {
+        color: var(--text1) !important;
+        border-color: var(--text1) !important;
+        margin-left: 1rem;
+      }
     }
 
+    .edit-board-name-textfield {
+      max-width: 200px;
+    }
     .toolbar-hamburguer-icon {
       color: var(--text1) !important;
 

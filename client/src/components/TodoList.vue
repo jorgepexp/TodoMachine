@@ -77,13 +77,14 @@
     </v-btn>
 
     <div class="item-composer" v-show="!hideAddTodoComposer">
-      <!-- // TODO No funciona autofocus -->
-      <textarea
-        autofocus
-        placeholder="Introduzca un título para esta tarea..."
+      <v-textarea
         v-model="newItemTitle"
         @keydown.enter.exact.prevent="addNewItem()"
-      ></textarea>
+        placeholder="Introduzca un título para esta tarea..."
+        autofocus
+        :dark="this.$store.state.darkTheme"
+      >
+      </v-textarea>
       <div class="new-item-options">
         <v-btn @click="addNewItem()" small color="primary">Añadir tarea</v-btn>
         <button @click="hideAddTodoComposer = true">
@@ -95,7 +96,7 @@
 </template>
 
 <script>
-import { addTodoItems, deleteList, editList } from '@/api/api';
+import { addTodoItems, deleteList, patchList } from '@/api/api';
 import ListOwnerChangeOverlay from './ListOwnerChangeOverlay.vue';
 import ListBoardChangeOverlay from './ListBoardChangeOverlay.vue';
 export default {
@@ -156,12 +157,9 @@ export default {
 
       await addTodoItems(this.boardID, this.id, [todoItem])
         .then(response => {
-          if (response.status === 400) {
-            return console.log('No se ha podido añadir todo a la lista');
-          }
-          if (response.status === 201) {
-            this.$store.dispatch('fetchBoards');
-          }
+          if (response.status === 400) return;
+
+          if (response.status === 201) this.$store.dispatch('fetchBoards');
         })
         .catch(error => {
           console.error(error.message);
@@ -186,14 +184,11 @@ export default {
       this.editNameComposer = false;
       if (this.hasListNameChanged) {
         this.hasListNameChanged = false;
-        editList(this.boardID, this.id, undefined, this.listName.trim())
+        patchList(this.boardID, this.id, { name: this.listName.trim() })
           .then(response => {
-            if (response.status === 400) {
-              return console.log('No se ha podido editar la lista');
-            }
-            if (response.status === 201) {
-              this.$store.dispatch('fetchBoards');
-            }
+            if (response.status === 400) return;
+
+            if (response.status === 200) this.$store.dispatch('fetchBoards');
           })
           .catch(error => console.error(error.message));
       }
@@ -220,13 +215,19 @@ export default {
       const isSameList = this.id == listID;
       if (isSameList) return;
 
-      let firstRequest = editList(this.boardID, parseInt(listID), this.index);
-      let secondRequest = editList(this.boardID, this.id, parseInt(listIndex));
+      let firstRequest = patchList(this.boardID, parseInt(listID), {
+        index: this.index,
+      });
+      let secondRequest = patchList(this.boardID, this.id, {
+        index: parseInt(listIndex),
+      });
 
-      await Promise.all([firstRequest, secondRequest]).catch(error =>
-        console.error(error)
-      );
-      this.$store.dispatch('fetchBoards');
+      await Promise.all([firstRequest, secondRequest])
+        .then(res => {
+          if (res[0].status === 200 && res[1].status === 200)
+            this.$store.dispatch('fetchBoards');
+        })
+        .catch(error => console.error(error));
     },
     autoIncrementID() {
       let maxID =

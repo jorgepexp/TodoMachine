@@ -42,11 +42,11 @@
         >
       </div>
     </v-form>
-    <a
-      ><router-link to="/todomachine/registro"
+    <div class="d-flex justify-center mt-8">
+      <router-link to="/todomachine/registro"
         >¿Todavía no estás registrado?</router-link
-      ></a
-    >
+      >
+    </div>
   </div>
 </template>
 
@@ -148,13 +148,6 @@ h2 {
   button:first-child {
     margin-right: 1rem;
   }
-}
-
-.login-form + a {
-  display: flex;
-  justify-content: center;
-
-  margin: 1em;
 }
 
 .error-container {

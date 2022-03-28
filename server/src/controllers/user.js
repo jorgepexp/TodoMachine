@@ -33,15 +33,18 @@ class UserController {
   async addUser(req, res) {
     try {
       const { username, password } = req.body;
-      if (!username || !password) {
-        return res.status(400).json({
-          message: 'Bad request',
-          error: true,
-        });
-      }
-      const hashedPassword = await bcrypt.hash(password, parseInt(11));
+      if (!username || !password) return res.sendStatus(400);
 
-      const result = await usersDAO.addUser(username, hashedPassword);
+      const hashedPassword = await bcrypt.hash(password, parseInt(11));
+      const accessToken = generateAccessToken({ username });
+      const refreshToken = generateRefreshToken({ username });
+
+      const result = await usersDAO.addUser(
+        username,
+        hashedPassword,
+        refreshToken
+      );
+
       if (result.insertedCount === 0) {
         return res.status(400).json({
           message: 'El nombre de usuario ya está siendo utilizado',
@@ -49,8 +52,16 @@ class UserController {
         });
       }
 
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        sameSite: process.env.NODE_ENV !== 'development' ? 'None' : 'Lax',
+        secure: process.env.NODE_ENV !== 'development',
+      });
+
       const response = {
         id: result.insertedId,
+        accessToken,
       };
 
       return res.status(200).json(response);
@@ -80,7 +91,6 @@ class UserController {
       const document = { refreshToken };
       await usersDAO.patchUser(filtros, document);
 
-      // maxAge: 30 * 1000, // 30s seconds
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 1 day

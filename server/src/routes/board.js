@@ -15,7 +15,7 @@ router.route('/:id').get(BoardController.getBoard);
 router
   .route('/list')
   .post(ListController.postList)
-  .put(ListController.editList)
+  .patch(ListController.patchList)
   .delete(ListController.deleteList);
 
 router

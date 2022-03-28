@@ -134,14 +134,14 @@ class TablonController {
   }
 
   async patchTodo(req, res) {
-    const { boardID, listID, todoID, document } = req.body;
-    const validKeys = ['title', 'index', 'description'];
+    const { boardID, listID, todoID, data } = req.body;
+    const validDataKeys = ['title', 'index', 'description'];
     try {
       if (
         !boardID ||
         isNaN(parseFloat(listID)) ||
         isNaN(parseFloat(todoID)) ||
-        !validKeys.includes(Object.keys(document)[0])
+        !validDataKeys.includes(Object.keys(data)[0])
       ) {
         return res.sendStatus(400);
       }
@@ -149,7 +149,7 @@ class TablonController {
         boardID,
         listID,
         todoID,
-        document
+        data
       );
 
       if (modifiedCount === 0) return res.sendStatus(400);

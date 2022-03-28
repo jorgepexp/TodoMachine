@@ -82,18 +82,16 @@ export default {
   data() {
     return {
       selectedItem: 0,
-      //TODO Añadir funcionalidad a cada uno de los botones
-      //TODO Dark theme no funciona del todo bien
-      // ? Cada objeto tendrá una referencia a una función
+      // Dark theme no funciona del todo bien con más de 1 item
       leftMenuItems: [
         {
           icon: 'mdi-bulletin-board',
           text: 'Tableros',
         },
-        {
-          icon: 'mdi-star',
-          text: 'Favoritos',
-        },
+        // {
+        //   icon: 'mdi-star',
+        //   text: 'Favoritos',
+        // },
       ],
     };
   },

@@ -67,14 +67,13 @@ export const postTodoList = (boardID, listID, name, index, todos) => {
   );
 };
 
-export const editList = (boardID, listID, index, name) => {
-  return axios.put(
+export const patchList = (boardID, listID, data) => {
+  return axios.patch(
     `/boards/list`,
     {
       boardID,
       listID,
-      index,
-      name,
+      data,
     },
     { withCredentials: true }
   );
@@ -106,14 +105,14 @@ export const addTodoItems = (boardID, listID, todos) => {
   );
 };
 
-export const patchTodo = (boardID, listID, todoID, document) => {
+export const patchTodo = (boardID, listID, todoID, data) => {
   return axios.patch(
     '/boards/todos/',
     {
       boardID,
       listID,
       todoID,
-      document,
+      data,
     },
     { withCredentials: true }
   );

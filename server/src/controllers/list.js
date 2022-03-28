@@ -26,31 +26,23 @@ class ListController {
     }
   }
 
-  async editList(req, res) {
-    const { boardID, listID, index, name } = req.body;
+  async patchList(req, res) {
+    const { boardID, listID, data } = req.body;
+    const validDataKeys = ['index', 'name'];
     if (
       isNaN(parseFloat(listID)) ||
       !boardID ||
-      (!isNaN(parseFloat(index)) && !name)
+      !validDataKeys.includes(Object.keys(data)[0])
     ) {
       return res.sendStatus(400);
     }
 
     try {
-      let modifiedCount = await boardsDAO.editList(
-        boardID,
-        listID,
-        index,
-        name
-      );
+      let modifiedCount = await boardsDAO.patchList(boardID, listID, data);
 
-      if (modifiedCount === 0) {
-        return res.status(400).json({
-          message: 'No se ha podido editar la lista',
-        });
-      }
+      if (modifiedCount === 0) return res.sendStatus(400);
 
-      return res.sendStatus(201);
+      return res.sendStatus(200);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
