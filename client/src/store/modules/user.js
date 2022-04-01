@@ -5,7 +5,6 @@ let state = {
   id: '',
   accessToken: '',
   loggedIn: false,
-  profilePic: null,
   boards: [],
 };
 
@@ -24,16 +23,12 @@ const mutations = {
   setUserToken(state, token) {
     state.accessToken = token;
   },
-  setUserProfilePicture(state, { profilePic }) {
-    state.profilePic = profilePic;
-  },
   resetUser(state) {
     state.username = '';
     state.id = '';
     // TODO Buscar otra manera más segura de almacenar el token de acceso
     state.accessToken = '';
     state.loggedIn = false;
-    state.profilePic = null;
     state.boards = [];
   },
 };

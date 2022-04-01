@@ -1,11 +1,11 @@
 <template>
   <div id="todo-list-container">
     <div
-      class="list-header"
-      :draggable="!editNameComposer"
+      @click="editNameComposer = true"
       @dragstart="onDragStart"
       @drop.prevent="onDrop"
-      @click="editNameComposer = true"
+      :draggable="!editNameComposer"
+      class="list-header"
     >
       <div class="task-name">
         <p v-if="!editNameComposer" class="mb-0">{{ listName }}</p>
@@ -186,9 +186,8 @@ export default {
         this.hasListNameChanged = false;
         patchList(this.boardID, this.id, { name: this.listName.trim() })
           .then(response => {
-            if (response.status === 400) return;
-
             if (response.status === 200) this.$store.dispatch('fetchBoards');
+            if (response.status === 400) return;
           })
           .catch(error => console.error(error.message));
       }
@@ -215,10 +214,10 @@ export default {
       const isSameList = this.id == listID;
       if (isSameList) return;
 
-      let firstRequest = patchList(this.boardID, parseInt(listID), {
+      const firstRequest = patchList(this.boardID, parseInt(listID), {
         index: this.index,
       });
-      let secondRequest = patchList(this.boardID, this.id, {
+      const secondRequest = patchList(this.boardID, this.id, {
         index: parseInt(listIndex),
       });
 
@@ -250,13 +249,12 @@ export default {
 </script>
 
 <style lang="scss">
-//Contenedor principal de cada lista de tareas
 #todo-list-container {
   display: flex;
   flex-flow: column nowrap;
   justify-content: flex-start;
 
-  width: $--todo-container-width;
+  min-width: $--todo-container-width;
   min-height: $--todo-container-height;
 
   background: var(--surface2);

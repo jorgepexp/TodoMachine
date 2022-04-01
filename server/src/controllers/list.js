@@ -29,9 +29,10 @@ class ListController {
   async patchList(req, res) {
     const { boardID, listID, data } = req.body;
     const validDataKeys = ['index', 'name'];
+
     if (
-      isNaN(parseFloat(listID)) ||
       !boardID ||
+      isNaN(parseFloat(listID)) ||
       !validDataKeys.includes(Object.keys(data)[0])
     ) {
       return res.sendStatus(400);

@@ -19,10 +19,11 @@
         </router-link>
       </v-toolbar-title>
 
+      <!-- Para versión mobile -->
       <v-menu offset-y class="dropdown-menu">
         <template v-slot:activator="{ on, attrs }">
           <v-btn
-            class="pb-1 dropdown-menu-btn"
+            class="dropdown-menu-btn"
             :class="!isUserLogged ? 'ml-auto' : ''"
             x-small
             color="transparent"
@@ -43,6 +44,7 @@
               </v-btn>
             </router-link>
           </v-list-item>
+
           <v-list-item v-if="!isUserLogged">
             <router-link :to="{ name: 'register' }" class="register-btn">
               <v-btn text>
@@ -51,6 +53,7 @@
               </v-btn>
             </router-link>
           </v-list-item>
+
           <v-list-item v-if="isUserLogged">
             <router-link
               :to="{
@@ -90,6 +93,7 @@
           name: 'mainBoard',
           params: { username: $store.state.user.username },
         }"
+        class="mr-3"
       >
         <v-btn text class="user-boards-link">
           <span class="mr-2">Tableros</span>
@@ -97,6 +101,9 @@
         </v-btn>
       </router-link>
 
+      <p v-if="isUserLogged" class="ma-0 font-weight-medium create-board-msg">
+        Crear tablero
+      </p>
       <BoardCreationOverlay v-if="isUserLogged" class="create-board-btn" />
 
       <v-btn text @click="toggleDarkTheme" class="toggle-theme-btn">
@@ -125,14 +132,9 @@
           </router-link>
         </div>
         <v-layout row class="align-center justify-end" v-else>
-          <v-list-item-avatar
-            color="secondary"
-            size="45"
-            class="mr-3"
-            @click.stop="drawer = !drawer"
-          >
-            <img :src="userProfilePic" />
-          </v-list-item-avatar>
+          <v-icon color="white" large @click.stop="drawer = !drawer">
+            mdi-account-circle
+          </v-icon>
         </v-layout>
       </div>
     </v-app-bar>
@@ -140,8 +142,8 @@
     <!-- Profile sidebar  -->
     <!-- TODO Se puede trasladar a componente -->
     <v-navigation-drawer
-      right
       absolute
+      left
       temporary
       v-model="drawer"
       :dark="this.$store.state.darkTheme"
@@ -191,9 +193,6 @@ export default {
     darkTheme() {
       return this.$store.state.darkTheme;
     },
-    userProfilePic() {
-      return this.$store.state.user.profilePic;
-    },
   },
   methods: {
     logoutUser() {
@@ -211,6 +210,7 @@ export default {
         this.$store.commit('toggleDarkTheme');
         return;
       }
+
       this.$root.$el.setAttribute('color-scheme', 'light');
       this.$store.commit('toggleDarkTheme');
     },
@@ -224,22 +224,23 @@ export default {
   .navigation {
     background-color: $--primary-color-transparent !important;
   }
-  .v-toolbar__title {
-    overflow: visible !important;
-  }
 
-  .nav-title span {
-    font-size: 17px;
-    display: flex;
-    align-items: center;
-    margin-right: 0.3rem;
+  .nav-title {
+    overflow: visible !important;
 
     span {
-      font-family: 'VT323', monospace;
-      font-weight: 400;
-      font-size: 26px;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      margin-right: 0.3rem;
 
-      padding-left: 3px;
+      span {
+        font-family: 'VT323', monospace;
+        font-weight: 400;
+        font-size: 26px;
+
+        padding-left: 3px;
+      }
     }
   }
 
@@ -265,14 +266,18 @@ export default {
     right: 25px;
   }
 
-  @media (max-width: 585px) {
+  @media (max-width: 600px) {
     .dropdown-menu-btn {
       display: block !important;
       height: 24px !important;
     }
+
+    .create-board-msg {
+      display: none;
+    }
   }
 
-  @media (min-width: 585px) {
+  @media (min-width: 600px) {
     .user-settings-container {
       display: flex;
       flex-grow: 1;
@@ -281,10 +286,6 @@ export default {
       align-items: center;
     }
 
-    // .dropdown-menu-btn {
-    //   margin-left: 0;
-    // }
-
     .toggle-theme-btn,
     .create-board-btn,
     .user-boards-link,
@@ -292,8 +293,10 @@ export default {
     .login-btn {
       display: inline-block;
     }
-
-    // .create-board-btn {}
   }
+
+  // @media (max-width: 990px) {
+
+  // }
 }
 </style>

@@ -32,16 +32,14 @@ const routes = [
     path: '/todomachine/login',
     name: 'login',
     component: () =>
-      import(/*webpackChunkName: "LoginView"*/ '../components/LoginForm.vue'),
+      import(/*webpackChunkName: "LoginView"*/ '../views/LoginView.vue'),
     props: true,
   },
   {
     path: '/todomachine/registro',
     name: 'register',
     component: () =>
-      import(
-        /*webpackChunkName: "RegisterView"*/ '../components/RegisterForm.vue'
-      ),
+      import(/*webpackChunkName: "RegisterView"*/ '../views/RegisterView.vue'),
   },
   {
     path: '/todomachine/:username/:name',
@@ -59,7 +57,7 @@ const routes = [
       requiredAuth: true,
     },
     beforeEnter: (to, from, next) => {
-      // TODO Esto está mal planteado
+      // TODO Esto quizá hay que plantearlo de otra forma para que no realice una petición cada vez (aunque los datos no hayan cambiado)
       getUserByUsername(to.params.username).then(response => {
         if (response.data?.users?.length) {
           next();

@@ -5,19 +5,24 @@
     @dragstart="onDragStart"
     @drop.prevent="onDrop"
   >
-    <div class="item-container" @click="editItemOverlay = !editItemOverlay">
+    <div
+      class="item-container"
+      @click.stop="editItemOverlay = !editItemOverlay"
+    >
       <div class="item-content">
         {{ title }}
       </div>
     </div>
+
     <!-- TODO Se podría trasladar a componente -->
+    <!-- Overlay de edición de tarea -->
     <v-dialog
       v-model="editItemOverlay"
-      max-width="500"
       transition="dialog-bottom-transition"
       :dark="this.$store.state.darkTheme"
+      content-class="edit-item-overlay"
     >
-      <v-card class="pa-4" min-width="500">
+      <v-card class="pa-4">
         <v-row align="center" class="pa-3">
           <v-card-title class="pa-0">
             <v-btn
@@ -43,7 +48,11 @@
             >
             </v-text-field>
           </v-card-title>
-          <v-btn icon class="ml-auto mr-1" @click="editItemOverlay = false">
+          <v-btn
+            icon
+            class="ml-auto mr-1"
+            @click.stop="editItemOverlay = false"
+          >
             <v-icon>
               mdi-window-close
             </v-icon>
@@ -267,9 +276,15 @@ export default {
     display: flex !important;
     align-items: center !important;
   }
+}
 
+.edit-item-overlay {
+  width: 400px;
+}
+
+@media (min-width: 600px) {
   .edit-item-overlay {
-    background-color: var(--surface1) !important;
+    width: 500px;
   }
 }
 </style>

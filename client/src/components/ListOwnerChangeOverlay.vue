@@ -1,17 +1,21 @@
 <template>
-  <div id="list-owner-change-overlay">
+  <div>
     <v-list-item @click.stop="dialog = true">
       <v-list-item-title>Cambiar de propietario</v-list-item-title>
     </v-list-item>
 
-    <v-dialog width="500" v-model="dialog">
+    <v-dialog
+      width="60%"
+      v-model="dialog"
+      :dark="this.$store.state.darkTheme"
+      content-class="list-owner-change-overlay"
+    >
       <v-card class="card-container">
-        <!-- class="indigo darken-2 white--text rounded-t" -->
-        <v-row class="align-center">
-          <v-card-title>
+        <v-row class="flex-nowrap align-center">
+          <v-card-title class="card-title">
             Cambiar propietario de lista
           </v-card-title>
-          <v-btn @click="dialog = !dialog" class="ml-auto mr-6" icon>
+          <v-btn @click.stop="dialog = !dialog" class="ml-auto mr-2" icon>
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-row>
@@ -33,51 +37,49 @@
             autofocus
           >
           </v-text-field>
-          <div class="d-flex justify-end">
-            <v-btn
-              class="mb-2"
-              color="primary"
-              text
-              @click="findUserBoards"
-              :disabled="!valid"
-              :loading="loading"
-            >
-              Buscar
-            </v-btn>
-          </div>
-          <!-- Comportamiento extraño al no incluirlo entre paréntesis -->
-          <v-banner single-line v-if="!(typeof foundUserBoards === 'object')">
-            <v-icon slot="icon" color="warning" size="32">
-              mdi-account-question
-            </v-icon>
-            Usuario no encontrado
-          </v-banner>
-        </v-form>
-
-        <v-select
-          v-if="foundUserBoards"
-          v-model="selectedBoard"
-          :items="foundUserBoards"
-          item-text="name"
-          return-object
-          label="Selecciona un tablero"
-          dense
-          solo
-          class="mx-8"
-        ></v-select>
-
-        <div class="d-flex justify-end">
           <v-btn
-            v-if="foundUserBoards"
-            :disabled="!selectedBoard"
-            @click="changeListOwner"
-            class="mb-4"
+            class="mb-2 d-flex ml-auto"
             color="primary"
             text
+            @click="findUserBoards"
+            :disabled="!valid"
+            :loading="loading"
           >
-            Cambiar
+            Buscar
           </v-btn>
-        </div>
+        </v-form>
+        <!-- Comportamiento extraño al no incluirlo entre paréntesis -->
+        <v-banner single-line v-if="!(typeof foundUserBoards === 'object')">
+          <v-icon slot="icon" color="warning" size="32">
+            mdi-account-question
+          </v-icon>
+          Usuario no encontrado
+        </v-banner>
+
+        <v-container fluid>
+          <v-select
+            v-if="foundUserBoards"
+            v-model="selectedBoard"
+            :items="foundUserBoards"
+            item-text="name"
+            return-object
+            label="Selecciona un tablero"
+            dense
+            solo
+            class="change-board-select"
+          ></v-select>
+        </v-container>
+
+        <v-btn
+          v-if="foundUserBoards"
+          :disabled="!selectedBoard"
+          @click="changeListOwner"
+          class="mb-4 d-flex ml-auto"
+          color="success"
+          text
+        >
+          Cambiar
+        </v-btn>
       </v-card>
     </v-dialog>
   </div>
@@ -203,9 +205,19 @@ export default {
 </script>
 
 <style lang="scss">
-#list-owner-change-overlay {
+.list-owner-change-overlay {
   .card-container {
     overflow: hidden;
+    padding-inline: 1rem;
+    padding-block: 0.7rem 1rem;
+  }
+
+  .card-title {
+    word-break: break-word;
+  }
+
+  .change-board-select {
+    width: 80%;
   }
 }
 </style>

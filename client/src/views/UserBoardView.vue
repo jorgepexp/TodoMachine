@@ -1,41 +1,38 @@
 <template>
   <div id="user-board-view">
+    <!-- Barra de ajustes de la vista -->
     <v-toolbar class="board-toolbar" elevation="0" dense>
-      <v-row class="mt-2 align-center">
-        <v-row class="edit-board-name-composer" align="center">
-          <v-btn
-            v-if="!editBoardNameComposer"
-            @click="editBoardNameComposer = true"
-            class="ml-6"
-            text
-            outlined
-          >
-            {{ name }}
-          </v-btn>
-          <v-text-field
-            v-model="boardName"
-            v-if="editBoardNameComposer"
-            @blur="editBoardName"
-            @keydown.enter.exact="editBoardName"
-            class="edit-board-name-textfield ml-7 mt-6"
-            autofocus
-            solo
-            dense
-            placeholder="Nuevo nombre del tablero..."
-          ></v-text-field>
-          <v-btn
-            @click="toggleFavorite"
-            icon
-            color="black"
-            class="toggle-favorite-btn"
-          >
-            <v-icon>{{ isFavorite ? 'mdi-star' : 'mdi-star-outline' }}</v-icon>
-          </v-btn>
-        </v-row>
+      <v-row class="edit-board-name-composer mt-2 flex-nowrap" align="center">
+        <v-btn
+          v-if="!editBoardNameComposer"
+          @click="editBoardNameComposer = true"
+          class="ml-6"
+          text
+          outlined
+        >
+          {{ name }}
+        </v-btn>
+        <v-text-field
+          v-model="boardName"
+          v-if="editBoardNameComposer"
+          @blur="editBoardName"
+          @keydown.enter.exact="editBoardName"
+          class="edit-board-name-textfield ml-7 mt-6"
+          autofocus
+          solo
+          dense
+          placeholder="Nuevo nombre del tablero..."
+        ></v-text-field>
+        <v-btn
+          @click="toggleFavorite"
+          icon
+          color="black"
+          class="toggle-favorite-btn"
+        >
+          <v-icon>{{ isFavorite ? 'mdi-star' : 'mdi-star-outline' }}</v-icon>
+        </v-btn>
 
-        <v-spacer></v-spacer>
-
-        <v-menu offset-y>
+        <v-menu offset-y class="d-flex ml-auto">
           <template v-slot:activator="{ on, attrs }">
             <v-app-bar-nav-icon
               class="toolbar-hamburguer-icon"
@@ -250,11 +247,10 @@ export default {
   //Contenedor principal del tablero
   .board-container {
     display: flex;
-    flex-flow: row nowrap;
     align-items: flex-start;
 
     height: 90vh;
-    width: auto;
+    // width: auto;
     background: var(--surface1);
     overflow-x: scroll;
 

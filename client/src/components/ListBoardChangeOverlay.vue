@@ -1,14 +1,21 @@
 <template>
-  <div id="list-board-change-overlay">
+  <div>
     <v-list-item @click.stop="dialog = true">
       <v-list-item-title>Cambiar de tablero</v-list-item-title>
     </v-list-item>
 
-    <v-dialog v-model="dialog" width="60%">
+    <v-dialog
+      content-class="list-board-change-overlay"
+      v-model="dialog"
+      width="60%"
+      :dark="this.$store.state.darkTheme"
+    >
       <v-card class="card-container">
-        <v-row class="align-center">
-          <v-card-title>Trasladar lista a otro tablero</v-card-title>
-          <v-btn @click="dialog = !dialog" class="ml-auto mr-6" icon>
+        <v-row class="flex-nowrap align-center">
+          <v-card-title class="card-title"
+            >Cambiar lista de tablero</v-card-title
+          >
+          <v-btn @click="dialog = !dialog" class="ml-auto mr-2" icon>
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-row>
@@ -20,20 +27,29 @@
         >
 
         <v-container fluid>
-          <v-row dense justify="space-around">
-            <!-- <v-col> -->
-            <div
-              @click="changeListLocation(board._id, board.name)"
-              v-for="board in boards"
-              :key="board._id"
-              class="card-item blue accent-3 white--text"
-            >
-              {{ board.name }}
-            </div>
-            <!-- </v-col> -->
-          </v-row>
+          <p v-if="!boards.length" class="red--text">
+            Ningún otro tablero disponible
+          </p>
+          <v-select
+            v-else
+            v-model="selectedBoard"
+            :items="boards"
+            item-text="name"
+            return-object
+            label="Selecciona un tablero"
+            dense
+            solo
+          ></v-select>
         </v-container>
         <v-spacer />
+        <v-btn
+          @click="changeListLocation"
+          :disabled="!selectedBoard"
+          color="success"
+          class="d-flex ml-auto"
+          text
+          >Confirmar</v-btn
+        >
       </v-card>
     </v-dialog>
   </div>
@@ -64,8 +80,13 @@ export default {
   data() {
     return {
       dialog: false,
-      targetBoardId: '',
+      selectedBoard: '',
     };
+  },
+  watch: {
+    dialog(newValue) {
+      if (newValue === false) this.reset();
+    },
   },
   computed: {
     boards() {
@@ -78,12 +99,12 @@ export default {
     },
   },
   methods: {
-    async changeListLocation(selectedBoardId, selectedBoardName) {
+    async changeListLocation() {
       await postTodoList(
-        selectedBoardId,
-        this.getNewListId(selectedBoardName),
+        this.selectedBoard._id,
+        this.getNewListId(this.selectedBoard.name),
         this.listName.trim(),
-        this.getNewListIndex(selectedBoardName),
+        this.getNewListIndex(this.selectedBoard.name),
         this.todos
       )
         .then(response => {
@@ -127,35 +148,52 @@ export default {
             ).index + 1;
       return newListIndex;
     },
+    reset() {
+      // Al no destruirse por completo, el componente mantiene su data() anterior si no se resetea
+      this.selectedBoard = '';
+    },
   },
 };
 </script>
 
 <style lang="scss">
-.card-container {
-  overflow: hidden;
-  padding-inline: 1rem;
-  padding-block: 0.7rem 1rem;
-  color: var(--text1);
-  background: var(--surface1);
-}
-.card-item {
-  height: 85px;
-  width: 130px;
-  overflow-wrap: break-word;
+.list-board-change-overlay {
+  .card-container {
+    overflow: hidden;
+    padding-inline: 1rem;
+    padding-block: 0.7rem 1rem;
+    color: var(--text1);
+  }
 
-  background: lightskyblue;
-  color: black;
-  border-radius: 5px;
-  border: 1px solid darkslateblue;
-  cursor: pointer;
+  .card-title {
+    word-break: break-word;
+  }
 
-  padding: 0.6rem;
-  // margin-left: 1.2rem;
+  .card-item {
+    height: 85px;
+    width: 130px;
+    // overflow-wrap: break-word;
 
-  &:hover {
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
-    border-color: #3178c6;
+    background: lightskyblue;
+    color: black;
+    border-radius: 5px;
+    cursor: pointer;
+
+    padding: 0.6rem;
+
+    &:hover {
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+      transform: scale(1.05);
+      border-color: #3178c6;
+    }
+  }
+
+  @media (min-width: 600px) {
+    .edit-item-overlay {
+      width: 500px;
+    }
+
+    // .card-container
   }
 }
 </style>
