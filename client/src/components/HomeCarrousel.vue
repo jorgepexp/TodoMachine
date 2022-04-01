@@ -1,16 +1,12 @@
 <template>
-  <section id="home-carrousel">
-    <v-carousel
-      v-model="carrousel"
-      hide-delimiter-background
-      show-arrows-on-hover
-    >
+  <section id="home-carousel">
+    <v-carousel v-model="carrousel" hide-delimiter-background>
       <v-carousel-item v-for="img in images" :key="img.src">
-        <v-row align="center" justify="center">
+        <v-row justify="center" class="v-carousel">
           <img
             :src="require('../assets/img/' + img.src)"
             :alt="img.alt"
-            class="carrousel-img"
+            class="carousel-img"
           />
         </v-row>
       </v-carousel-item>
@@ -20,38 +16,37 @@
 
 <script>
 export default {
-  name: 'HomeCarrousel',
+  name: 'HomeCarousel',
   components: {},
   data() {
     return {
       carrousel: 0,
-      // TODO Que las imágenes se pasen al componente como props
       images: [
         {
-          src: 'luffy.jpg',
-          alt: 'Luffy',
+          src: 'captura-todolist.jpg',
+          alt: 'Ejemplo TodoList',
         },
         {
-          src: 'jinbei.jpg',
-          alt: 'Jinbei',
+          src: 'captura-create-board.jpg',
+          alt: 'Ejemplo crear nuevo tablero',
         },
         {
-          src: 'zoro.jpg',
-          alt: 'Zoro',
+          src: 'captura-change-owner.jpg',
+          alt: 'Ejemplo cambiar propietario',
         },
       ],
     };
   },
-  methods: {},
 };
 </script>
 
 <style lang="scss">
-#home-carrousel {
+#home-carousel {
   min-height: 100%;
 
-  .carrousel-img {
-    width: 100%;
+  .carousel-img {
+    // width: 100%;
+    padding: 0.8rem;
     height: 500px;
     object-fit: contain;
   }

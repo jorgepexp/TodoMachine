@@ -89,7 +89,6 @@ export default {
               accessToken: response.data.accessToken,
             });
 
-            this.getRandomPfp();
             this.$store.commit('changeUserStatus');
             await this.$store.dispatch('fetchBoards');
 
@@ -107,14 +106,6 @@ export default {
       } catch (error) {
         console.error(error);
       }
-    },
-    getRandomPfp() {
-      fetch('https://randomuser.me/api/')
-        .then(response => response.json())
-        .then(data => {
-          let profilePic = data.results[0].picture.medium;
-          this.$store.commit('setUserProfilePicture', { profilePic });
-        });
     },
     reset() {
       this.$refs.form.reset();
