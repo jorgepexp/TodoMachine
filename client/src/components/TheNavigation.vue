@@ -101,9 +101,6 @@
         </v-btn>
       </router-link>
 
-      <p v-if="isUserLogged" class="ma-0 font-weight-medium create-board-msg">
-        Crear tablero
-      </p>
       <BoardCreationOverlay v-if="isUserLogged" class="create-board-btn" />
 
       <v-btn text @click="toggleDarkTheme" class="toggle-theme-btn">

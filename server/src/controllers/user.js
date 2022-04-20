@@ -70,6 +70,17 @@ class UserController {
     }
   }
 
+  async patchUser(req, res) {
+    const { filters, document } = req.body;
+    if (!filters || !document) return res.sendStatus(400);
+
+    let modifiedCount = await usersDAO.patchUser(filters, document);
+
+    if (modifiedCount === 0) return res.sendStatus(400);
+
+    return res.sendStatus(200);
+  }
+
   async handleLogin(req, res) {
     try {
       const { username, password } = req.body;
@@ -133,17 +144,6 @@ class UserController {
       secure: process.env.NODE_ENV !== 'development',
     });
     return res.sendStatus(204);
-  }
-
-  async patchUser(req, res) {
-    const { filters, document } = req.body;
-    if (!filters || !document) return res.sendStatus(400);
-
-    let modifiedCount = await usersDAO.patchUser(filters, document);
-
-    if (modifiedCount === 0) return res.sendStatus(400);
-
-    return res.sendStatus(200);
   }
 }
 

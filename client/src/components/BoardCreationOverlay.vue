@@ -1,12 +1,13 @@
 <template>
   <div>
-    <v-btn @click.stop="dialog = true" text>
-      <div v-if="mobile">
-        <span class="pr-2">Nuevo tablero</span>
-        <v-icon> mdi-plus-box</v-icon>
-      </div>
+    <v-btn v-if="mobile" @click.stop="dialog = true" text>
+      <span class="pr-2">Nuevo tablero</span>
+      <v-icon> mdi-plus-box</v-icon>
+    </v-btn>
 
-      <v-icon v-else large> mdi-plus-box</v-icon>
+    <v-btn v-else @click.stop="dialog = true" class="user-boards-link" text>
+      <span class="mr-2">crear</span>
+      <v-icon size="30">mdi-plus-box</v-icon>
     </v-btn>
 
     <v-dialog width="500" v-model="dialog">

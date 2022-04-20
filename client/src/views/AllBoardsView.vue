@@ -20,7 +20,7 @@
 
     <v-list class="all-boards mt-10">
       <v-list-item-title class="title">
-        Tus tableros favoritos
+        <p>Tus tableros favoritos</p>
         <span aria-hidden="true">🌟</span></v-list-item-title
       >
       <div class="separator" aria-hidden="true"></div>
@@ -47,7 +47,8 @@
       </p>
 
       <v-list-item-title class="title">
-        Todos tus tableros <span aria-hidden="true">✔️</span></v-list-item-title
+        <p>Todos tus tableros</p>
+        <span aria-hidden="true">✔️</span></v-list-item-title
       >
       <div class="separator" aria-hidden="true"></div>
       <div v-if="userBoards.length" class="available-boards">
@@ -137,8 +138,14 @@ export default {
       line-height: 2rem;
       padding: 0;
       margin: 0;
-
       margin-left: 1rem;
+
+      & > p {
+        display: inline-block;
+        font-size: 22px;
+        margin: 0;
+        padding-right: 5px;
+      }
     }
 
     .available-boards,
@@ -175,13 +182,10 @@ export default {
 
     .no-boards-msg,
     .no-favorites-msg {
+      color: var(--text1);
       margin: 0.5rem 0 2rem 1rem;
     }
   }
-
-  // .favorite-boards {
-  //   background: var(--surface1);
-  // }
 
   .separator {
     width: 80%;

@@ -11,11 +11,14 @@ export const handleRefreshToken = async (req, res) => {
     const foundUser = await usersDAO.getUsers(filters);
     //* Si no se encuentra el token en BD lanzamos Forbidden
     if (foundUser?.length > 1) return res.sendStatus(403);
+    console.log(foundUser[0].username);
+    console.log(foundUser[0].refreshToken);
 
     //* Evalua el JWT
     jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err, decoded) => {
       if (err || foundUser[0].username !== decoded.username)
-        return res.sendStatus(403);
+        // Devolvemos un status code único para facilitar en friendly login desde el cliente
+        return res.sendStatus(406);
 
       const accessToken = jwt.sign(
         { username: decoded.username },

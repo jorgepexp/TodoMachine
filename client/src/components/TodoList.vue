@@ -96,7 +96,7 @@
 </template>
 
 <script>
-import { addTodoItems, deleteList, patchList } from '@/api/api';
+import { addTodoItems, deleteList, patchList, deleteTodo } from '@/api/api';
 import ListOwnerChangeOverlay from './ListOwnerChangeOverlay.vue';
 import ListBoardChangeOverlay from './ListBoardChangeOverlay.vue';
 export default {
@@ -205,28 +205,60 @@ export default {
       ev.dataTransfer.effectAllowed = 'move';
     },
     async onDrop(ev) {
-      if (!ev.dataTransfer.getData('list-data')) return;
+      // Drag&Drop de TodoList
+      if (ev.dataTransfer.getData('list-data')) {
+        const { index: listIndex, id: listID } = JSON.parse(
+          ev.dataTransfer.getData('list-data')
+        );
 
-      const { index: listIndex, id: listID } = JSON.parse(
-        ev.dataTransfer.getData('list-data')
-      );
+        const isSameList = this.id == listID;
+        if (isSameList) return;
 
-      const isSameList = this.id == listID;
-      if (isSameList) return;
+        const firstRequest = patchList(this.boardID, parseInt(listID), {
+          index: this.index,
+        });
+        const secondRequest = patchList(this.boardID, this.id, {
+          index: parseInt(listIndex),
+        });
 
-      const firstRequest = patchList(this.boardID, parseInt(listID), {
-        index: this.index,
-      });
-      const secondRequest = patchList(this.boardID, this.id, {
-        index: parseInt(listIndex),
-      });
+        await Promise.all([firstRequest, secondRequest])
+          .then(res => {
+            if (res[0].status === 200 && res[1].status === 200)
+              this.$store.dispatch('fetchBoards');
+          })
+          .catch(error => console.error(error));
+      }
 
-      await Promise.all([firstRequest, secondRequest])
-        .then(res => {
-          if (res[0].status === 200 && res[1].status === 200)
-            this.$store.dispatch('fetchBoards');
-        })
-        .catch(error => console.error(error));
+      // Drag&Drop de TodoItem. En caso de que no haya otros items en la lista, sin esto no se podría dropear
+      if (ev.dataTransfer.getData('todo-data')) {
+        const {
+          id: draggedItemID,
+          parentID: draggedItemParentID,
+          title: draggedItemTitle,
+          description: draggedItemDescription,
+        } = JSON.parse(ev.dataTransfer.getData('todo-data'));
+
+        if (draggedItemParentID === this.id) return;
+        const todoItem = {
+          title: draggedItemTitle,
+          id: this.autoIncrementID(),
+          index: this.autoIncrementIndex(),
+          description: draggedItemDescription,
+        };
+        console.log(todoItem);
+
+        await addTodoItems(this.boardID, this.id, [todoItem]).catch(error =>
+          console.error(error)
+        );
+
+        await deleteTodo(
+          this.boardID,
+          parseInt(draggedItemParentID),
+          parseInt(draggedItemID)
+        ).catch(error => console.error(error));
+
+        return this.$store.dispatch('fetchBoards');
+      }
     },
     autoIncrementID() {
       let maxID =

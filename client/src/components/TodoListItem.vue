@@ -14,7 +14,6 @@
       </div>
     </div>
 
-    <!-- TODO Se podría trasladar a componente -->
     <!-- Overlay de edición de tarea -->
     <v-dialog
       v-model="editItemOverlay"
