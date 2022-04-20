@@ -75,12 +75,20 @@ Aplicación de tareas, ordenadas mediante listas y tableros al estilo Trello.
    ```sh
    git clone https://github.com/jorgepexp/TodoMachine.git
    ```
-2. Instala los paquetes NPM
+2. Instala los paquetes NPM en las carpetas server y client
    ```sh
    npm install
    ```
-3. Lanza el proyecto
-`sh npm run serve `
+3. Lanza el cliente desde /client
+   ```sh
+   npm run serve
+   ```
+4. Lanza el servidor desde /server
+   ```sh
+   npm run dev
+   ```
+
+  
 <p align="right">(<a href="#top">vuelta arriba</a>)</p>
 
 ## Contacta conmigo
@@ -93,7 +101,7 @@ Link al repositorio: [https://github.com/jorgepexp/TodoMachine](https://github.c
 
 ## Bugs
 
-Si encuentras algún bug en la aplicación o simplemente quieres sugerir alguna mejora, me ayudaría mucho si dejas aquí tu [pull request (Todo)](https://github.com/jorgepexp/TodoMachine)
+Si encuentras algún bug en la aplicación o simplemente quieres sugerir alguna mejora, me ayudaría mucho si dejas aquí tu [pull request](https://github.com/jorgepexp/TodoMachine/pulls)
 
 <p align="right">(<a href="#top">vuelta arriba</a>)</p>
 
