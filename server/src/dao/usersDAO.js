@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 // Referencia a nuestra BDD
 let users;
 
@@ -18,29 +19,27 @@ export default class UsersDAO {
   }
 
   static async getUsers({ filters = null, page = 0, usersPerPage = 20 }) {
-    let query;
-    // Comprobamos si nos han pasado los filtros para reducir la búsqueda
+    let filter;
+    let cursor;
+    //* Comprobamos si nos han pasado los filtros para acotar la búsqueda
     if (filters) {
       if ('username' in filters) {
-        query = { username: { $eq: filters['username'] } };
+        filter = { username: { $eq: filters['username'] } };
       } else if ('id' in filters) {
-        query = { _id: { $eq: filters['id'] } };
-      } else if ('email' in filters) {
-        query = { email: { $eq: filters['email'] } };
-      } else if ('name' in filters) {
-        query = { name: { $eq: filters['name'] } };
+        filter = { _id: { $eq: filters['id'] } };
+      } else if ('refreshToken' in filters) {
+        filter = { refreshToken: { $eq: filters['refreshToken'] } };
       }
     }
 
-    let cursor;
     try {
-      cursor = await users.find(query);
+      cursor = await users.find(filter);
     } catch (error) {
       console.error('No se ha podido ejecutar el comando find', error);
       return { users: [] };
     }
 
-    // Limitamos los resultados del query a los pasados por parámetro
+    //* Limitamos los resultados del query a los pasados por parámetro
     const formattedCursor = cursor
       .limit(usersPerPage)
       .skip(usersPerPage * page);
@@ -57,37 +56,56 @@ export default class UsersDAO {
     }
   }
 
-  static async addUser(userData = null) {
-    console.log(userData);
-    if (!userData) return;
+  static async addUser(username, password, refreshToken) {
+    try {
+      const user = await users
+        .find({ username: username })
+        .toArray()
+        .then(data => data);
 
-    if (userData.username && userData.password) {
-      try {
-        // let email = await users
-        // 	.find({ email: { $eq: userData.email } })
-        // 	.toArray()
-        // 	.then(data => data);
+      if (user.length) throw new Error('Username ya utilizado');
 
-        // Comprobamos si cualquiera de los datos está siendo ya utilizado
-        let username = await users
-          .find({ username: userData.username })
-          .toArray()
-          .then(data => data);
+      const result = await users.insertOne({
+        username,
+        password,
+        refreshToken,
+      });
+      return result;
+    } catch (error) {
+      return { message: `Algo ha salido mal ${error.message}` };
+    }
+  }
 
-        // email.length !== 0 ||
-        if (username.length) {
-          throw new Error('Username ya utilizado');
-        }
-
-        let modifiedCount = await users.insertOne(userData);
-        return modifiedCount;
-      } catch (error) {
-        throw new Error(
-          'No se ha podido introducir al usuario: Datos erróneos'
-        );
+  static async patchUser(filters, document) {
+    let filter;
+    //* Campos por los que se puede filtrar
+    if (filters) {
+      if ('username' in filters) {
+        filter = { username: { $eq: filters['username'] } };
+      } else if ('id' in filters) {
+        filter = { _id: { $eq: filters['id'] } };
+      } else if ('refreshToken' in filters) {
+        filter = { refreshToken: { $eq: filters['refreshToken'] } };
       }
-    } else {
-      throw new Error('Datos incompletos para introducir al usuario');
+    }
+
+    //* Recuperamos key/value
+    [document] = Object.entries(document);
+
+    //* Si es contraseña, la encriptamos
+    if (document[0] === 'password')
+      document[1] = await bcrypt.hash(document[1], parseInt(11));
+
+    try {
+      const result = await users.updateOne(filter, {
+        $set: {
+          [document[0]]: document[1],
+        },
+      });
+
+      return result.modifiedCount;
+    } catch (error) {
+      return { message: `Algo ha salido mal ${error.message}` };
     }
   }
 }

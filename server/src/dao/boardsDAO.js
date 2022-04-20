@@ -21,11 +21,11 @@ export default class BoardsDAO {
   static async getBoards(ownerID) {
     let objectID = new ObjectId(ownerID);
 
-    let query = { owner: objectID };
+    let filter = { owner: objectID };
     let cursor;
 
     try {
-      cursor = await boards.find(query);
+      cursor = await boards.find(filter);
     } catch (error) {
       throw new Error('No se ha podido ejecutar el comando find');
     }
@@ -50,19 +50,50 @@ export default class BoardsDAO {
     }
   }
 
-  // TODO Comprobar que el ID de la lista no esté siendo utilizado
-  static async postList(listData = null) {
+  static async patchBoard(boardID, data) {
     try {
-      let { boardID, listID, name, index } = listData;
+      boardID = new ObjectId(boardID);
+      const filter = { _id: boardID };
 
-      console.log(index);
+      //* Recuperamos key/value del objeto
+      [data] = Object.entries(data);
+
+      const result = await boards.updateOne(filter, {
+        $set: {
+          [data[0]]: data[1],
+        },
+      });
+
+      return result.modifiedCount;
+    } catch (error) {
+      throw new Error(`Error editando tablero: ${error}`);
+    }
+  }
+
+  static async deleteBoard(boardID) {
+    try {
+      boardID = new ObjectId(boardID);
+      const query = { _id: boardID };
+      const result = await boards.deleteOne(query);
+      return result.deletedCount;
+    } catch (error) {
+      throw new Error(`Error borrando tablero: ${error}`);
+    }
+  }
+
+  // TODO Comprobar que el ID de la lista no esté siendo utilizado
+  static async postList(listData) {
+    try {
+      let { boardID, listID, name, index, todos } = listData;
 
       boardID = new ObjectId(boardID);
-      let query = { _id: boardID };
+      const filter = { _id: boardID };
 
-      const document = { id: listID, name, todos: [], index };
+      todos = todos ?? [];
 
-      const result = await boards.updateOne(query, {
+      const document = { id: listID, name, todos, index };
+
+      const result = await boards.updateOne(filter, {
         $push: { todo_lists: document },
       });
 
@@ -72,23 +103,22 @@ export default class BoardsDAO {
     }
   }
 
-  static async editList(boardID, listID, index, listName) {
+  static async patchList(boardID, listID, data) {
     try {
       boardID = new ObjectId(boardID);
 
-      let query = { _id: boardID };
-      let arrayFilters = [{ 'list.id': { $eq: listID } }];
+      const filter = { _id: boardID };
+      const arrayFilters = [{ 'list.id': { $eq: listID } }];
 
-      //Si han pasado un índice, ejecutamos esa query, si no, será el nombre el que se haya pasado
-      let data =
-        index !== undefined
-          ? { 'todo_lists.$[list].index': index }
-          : { 'todo_lists.$[list].name': listName };
+      //* Recuperamos key/value del objeto
+      [data] = Object.entries(data);
 
       const result = await boards.updateOne(
-        query,
+        filter,
         {
-          $set: data,
+          $set: {
+            [`todo_lists.$[list].${data[0]}`]: data[1],
+          },
         },
         { arrayFilters }
       );
@@ -103,8 +133,8 @@ export default class BoardsDAO {
     try {
       boardID = new ObjectId(boardID);
 
-      let query = { _id: boardID };
-      const result = await boards.update(query, {
+      const filter = { _id: boardID };
+      const result = await boards.updateOne(filter, {
         $pull: { todo_lists: { id: listID } },
       });
       return result.modifiedCount;
@@ -116,11 +146,11 @@ export default class BoardsDAO {
   static async postTodoItems(boardID, listID, todos) {
     try {
       boardID = new ObjectId(boardID);
-      const query = { _id: boardID };
+      const filter = { _id: boardID };
       const arrayFilters = [{ 'list.id': { $eq: listID } }];
 
       const result = await boards.updateOne(
-        query,
+        filter,
         {
           $push: { 'todo_lists.$[list].todos': { $each: todos } },
         },
@@ -133,37 +163,14 @@ export default class BoardsDAO {
     }
   }
 
-  //TODO Que se pueda editar diferentes datos desde el mismo método
-  static async editTodo(boardID, listID, todoID, index) {
-    try {
-      boardID = new ObjectId(boardID);
-      const query = { _id: boardID };
-      const arrayFilters = [
-        { 'list.id': { $eq: listID } },
-        { 'todo.id': { $eq: todoID } },
-      ];
-      const result = await boards.updateOne(
-        query,
-        {
-          $set: { 'todo_lists.$[list].todos.$[todo].index': index },
-        },
-        { arrayFilters }
-      );
-
-      return result.modifiedCount;
-    } catch (error) {
-      throw new Error(`Error al editar TODO: ${error}`);
-    }
-  }
-
   static async deleteTodo(boardID, listID, todoID) {
     try {
       boardID = new ObjectId(boardID);
-      const query = { _id: boardID };
+      const filter = { _id: boardID };
       const arrayFilters = [{ 'list.id': listID }];
 
       const result = await boards.updateOne(
-        query,
+        filter,
         {
           $pull: {
             'todo_lists.$[list].todos': {
@@ -177,6 +184,34 @@ export default class BoardsDAO {
       return result.modifiedCount;
     } catch (error) {
       throw new Error(`Error al eliminar la tarea: ${error}`);
+    }
+  }
+
+  static async patchTodo(boardID, listID, todoID, document) {
+    try {
+      boardID = new ObjectId(boardID);
+      const filter = { _id: boardID };
+      const arrayFilters = [
+        { 'list.id': { $eq: listID } },
+        { 'todo.id': { $eq: todoID } },
+      ];
+
+      //* Recuperamos key/value del objeto
+      [document] = Object.entries(document);
+      const identifier = `todo_lists.$[list].todos.$[todo].${[document[0]]}`;
+
+      const result = await boards.updateOne(
+        filter,
+        {
+          $set: {
+            [identifier]: document[1],
+          },
+        },
+        { arrayFilters }
+      );
+      return result.modifiedCount;
+    } catch (error) {
+      return { message: `Algo ha salido mal ${error.message}` };
     }
   }
 }

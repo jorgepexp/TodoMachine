@@ -5,54 +5,78 @@
     @dragstart="onDragStart"
     @drop.prevent="onDrop"
   >
-    <!-- 
-      @dragover.stop
-      @dragstart="dragStart($event)" -->
     <div
-      ref="itemContainer"
       class="item-container"
-      @click="editItemOverlay = !editItemOverlay"
+      @click.stop="editItemOverlay = !editItemOverlay"
     >
       <div class="item-content">
         {{ title }}
       </div>
     </div>
 
+    <!-- Overlay de edición de tarea -->
     <v-dialog
       v-model="editItemOverlay"
-      max-width="500"
       transition="dialog-bottom-transition"
+      :dark="this.$store.state.darkTheme"
+      content-class="edit-item-overlay"
     >
-      <v-card class="mx-auto px-4 py-4" min-width="500">
-        <v-card-title class="px-0 py-0">
-          <span class="text-h5">{{ title }}</span>
-        </v-card-title>
-        <div class="text-subtitle-1">
+      <v-card class="pa-4">
+        <v-row align="center" class="pa-3">
+          <v-card-title class="pa-0">
+            <v-btn
+              v-if="!editNameComposer"
+              @click="editNameComposer = true"
+              class="px-2 mb-1 font-weight-bold text-body-1"
+              text
+              outlined
+            >
+              {{ todoTitle }}
+            </v-btn>
+            <v-text-field
+              v-model="todoTitle"
+              v-if="editNameComposer"
+              @keydown.enter.exact.prevent="editTodoTitle"
+              @blur="editTodoTitle"
+              class="pa-0 mt-2"
+              autofocus
+              solo
+              outlined
+              dense
+              single-line
+            >
+            </v-text-field>
+          </v-card-title>
+          <v-btn
+            icon
+            class="ml-auto mr-1"
+            @click.stop="editItemOverlay = false"
+          >
+            <v-icon>
+              mdi-window-close
+            </v-icon>
+          </v-btn>
+        </v-row>
+
+        <v-card-subtitle class="">
           en la lista
           <span class="text-decoration-underline">{{ this.$parent.name }}</span>
-        </div>
+        </v-card-subtitle>
+        <p class="mb-1">Descripción de la tarea</p>
         <v-textarea
-          clearable
-          clear-icon="mdi-close-circle"
-          label="Text"
+          v-model="todoDescription"
+          @blur="editTodoDescription"
+          placeholder="Descripcion..."
+          outlined
+          auto-grow
         ></v-textarea>
-        <!-- <v-textarea
-          name="todo-description"
-          label="Descripción de la tarea"
-          clearable
-          clear-icon="mdi-close-circle"
-        >
-        </v-textarea> -->
+
         <div class="d-flex flex-row-reverse">
-          <v-btn
-            class="white--text"
-            color="teal"
-            @click="editItemOverlay = false"
-          >
+          <v-btn class="white--text" color="teal" @click="commitItemChanges">
             Hecho
           </v-btn>
           <v-btn class="white--text" color="error" plain @click="deleteTodo">
-            Eliminar
+            Eliminar tarea
           </v-btn>
         </div>
       </v-card>
@@ -61,9 +85,10 @@
 </template>
 
 <script>
-import { editTodo, deleteTodo, addTodoItems } from '@/api.js';
+import { patchTodo, deleteTodo, addTodoItems } from '@/api/api';
 export default {
   name: 'TodoItem',
+  //? Datos de la lista padre
   props: {
     id: {
       type: Number,
@@ -81,94 +106,141 @@ export default {
       type: Number,
       required: true,
     },
+    description: {
+      type: String,
+    },
   },
   data() {
     return {
-      itemContainer: [],
       editItemOverlay: false,
-      zIndex: 100,
+      editNameComposer: false,
+      todoTitle: this.title,
+      hasTitleChanged: false,
+      todoDescription: this.description,
+      hasDescriptionChanged: false,
+      parentListId: this.$parent.id,
     };
+  },
+  watch: {
+    todoDescription() {
+      this.hasDescriptionChanged = true;
+    },
+    todoTitle() {
+      this.hasTitleChanged = true;
+    },
   },
   computed: {
     boardID() {
-      return this.$store.getters.getBoardByName(this.$parent.$parent.id)._id;
+      return this.$store.getters.getBoardByName(this.$parent.$parent.name)._id;
     },
   },
   methods: {
     deleteTodo() {
-      deleteTodo(this.boardID, this.$parent.id, this.id).then(response => {
-        // TODO Controlar excepciones
-        console.log(response);
-        this.editItemOverlay = false;
-        this.$store.dispatch('fetchBoards');
+      deleteTodo(this.boardID, this.parentListId, this.id).then(response => {
+        if (response.status === 200) {
+          this.editItemOverlay = false;
+          this.$store.dispatch('fetchBoards');
+          return;
+        }
+        console.error(response);
       });
     },
+    async editTodoTitle() {
+      this.editNameComposer = false;
+      if (this.hasTitleChanged) {
+        await patchTodo(this.boardID, this.parentListId, this.id, {
+          title: this.todoTitle,
+        }).then(response => {
+          if (response.status === 200) this.$store.dispatch('fetchBoards');
+        });
+      }
+      this.hasTitleChanged = false;
+    },
+    commitItemChanges() {
+      this.editTodoDescription();
+      this.editItemOverlay = false;
+    },
+    async editTodoDescription() {
+      if (this.todoDescription && this.hasDescriptionChanged) {
+        this.hasDescriptionChanged = false;
+        await patchTodo(this.boardID, this.parentListId, this.id, {
+          description: this.todoDescription,
+        })
+          .then(response => {
+            if (response.status === 200) this.$store.dispatch('fetchBoards');
+          })
+          .catch(error => console.error(error));
+      }
+      this.hasDescriptionChanged = false;
+    },
     onDragStart(ev) {
-      ev.dataTransfer.dropEffect = 'move';
-      ev.dataTransfer.effectAllowed = 'move';
       ev.dataTransfer.setData(
         'todo-data',
         JSON.stringify({
           index: this.index,
           id: this.id,
-          parentID: this.$parent.id,
+          parentID: this.parentListId,
           title: this.title,
+          description: this.description,
         })
       );
+      ev.dataTransfer.dropEffect = 'move';
+      ev.dataTransfer.effectAllowed = 'move';
     },
     async onDrop(ev) {
-      const draggedItemData = JSON.parse(ev.dataTransfer.getData('todo-data'));
+      // Evitamos error en caso de que se dropee otro elemento en la zona
+      if (!ev.dataTransfer.getData('todo-data')) return;
 
-      const dropZoneID = this.$parent.id;
+      const dropZoneID = this.parentListId;
+      const {
+        index: draggedItemIndex,
+        id: draggedItemID,
+        parentID: draggedItemParentID,
+        title: draggedItemTitle,
+        description: draggedItemDescription,
+      } = JSON.parse(ev.dataTransfer.getData('todo-data'));
 
-      // Si el ID es el mismo es que han dropeado la tarea en su misma posición
-      if (
-        this.id == draggedItemData.id &&
-        dropZoneID == draggedItemData.parentID
-      ) {
-        return console.log('Item dropeado en sí mismo');
-      }
+      const isSameItem = this.id == draggedItemID;
+      const isSameDropzone = dropZoneID == draggedItemParentID;
+      if (isSameItem && isSameDropzone) return;
 
-      if (dropZoneID != draggedItemData.parentID) {
+      // Al moverlo a diferente lista se inserta en última posición
+      if (dropZoneID != draggedItemParentID) {
         const todoItem = {
-          title: draggedItemData.title,
+          title: draggedItemTitle,
           id: this.$parent.autoIncrementID(),
           index: this.$parent.autoIncrementIndex(),
+          description: draggedItemDescription,
         };
 
-        await addTodoItems(this.boardID, parseInt(dropZoneID), [todoItem]).then(
-          response => {
-            console.log(response);
-          }
-        );
+        await addTodoItems(this.boardID, parseInt(dropZoneID), [
+          todoItem,
+        ]).catch(error => console.error(error));
 
         await deleteTodo(
           this.boardID,
-          parseInt(draggedItemData.parentID),
-          parseInt(draggedItemData.id)
-        ).then(response => {
-          console.log(response);
-        });
+          parseInt(draggedItemParentID),
+          parseInt(draggedItemID)
+        ).catch(error => console.error(error));
 
-        await this.$store.dispatch('fetchBoards');
-        return console.log('Dropeado en distinta lista');
+        this.$store.dispatch('fetchBoards');
+        return;
       }
 
-      let firstRequest = editTodo(
+      const firstRequest = patchTodo(
         this.boardID,
         dropZoneID,
-        parseInt(draggedItemData.id),
-        this.index
-      );
-      let secondRequest = editTodo(
-        this.boardID,
-        dropZoneID,
-        this.id,
-        parseInt(draggedItemData.index)
+        parseInt(draggedItemID),
+        { index: this.index }
       );
 
-      // TODO Controlar las excepciones
-      await Promise.all([firstRequest, secondRequest]);
+      const secondRequest = patchTodo(this.boardID, dropZoneID, this.id, {
+        index: parseInt(draggedItemIndex),
+      });
+
+      await Promise.all([firstRequest, secondRequest]).catch(error =>
+        console.error(error)
+      );
       this.$store.dispatch('fetchBoards');
     },
   },
@@ -196,6 +268,22 @@ export default {
     &:hover {
       background-color: $--hover-bg-light;
     }
+  }
+
+  .v-text-field .v-input__control .v-input__slot {
+    min-height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+}
+
+.edit-item-overlay {
+  width: 400px;
+}
+
+@media (min-width: 600px) {
+  .edit-item-overlay {
+    width: 500px;
   }
 }
 </style>

@@ -1,31 +1,32 @@
 <template>
   <div id="todo-list-container">
     <div
-      class="list-header"
-      :draggable="!editNameComposer"
+      @click="editNameComposer = true"
       @dragstart="onDragStart"
       @drop.prevent="onDrop"
-      @click="editNameComposer = true"
+      :draggable="!editNameComposer"
+      class="list-header"
     >
       <div class="task-name">
         <p v-if="!editNameComposer" class="mb-0">{{ listName }}</p>
 
         <v-textarea
           v-if="editNameComposer"
+          class="edit-name-composer"
           v-model="listName"
           @keydown.enter.exact.prevent="editListName"
-          @blur="editNameComposer = false"
+          @blur="editListName"
           autofocus
           auto-grow
-          filled
           outlined
+          dense
           rows="1"
           :placeholder="listName"
           background-color="white"
         ></v-textarea>
-        <!-- height="20" -->
       </div>
-      <div @click="isActionOpen = !isActionOpen" class="list-header-extras">
+
+      <div class="list-header-extras">
         <v-menu offset-y>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -42,16 +43,28 @@
           </template>
 
           <v-list>
+            <ListBoardChangeOverlay
+              :listId="id"
+              :listName="name"
+              :boardId="boardID"
+              :todos="todos"
+            />
+            <ListOwnerChangeOverlay
+              :listId="id"
+              :boardId="boardID"
+              :name="name"
+              :index="index"
+              :todos="todos"
+            />
+
             <v-list-item @click="deleteList">
               <v-list-item-title>Borrar lista</v-list-item-title>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-title>Cambiar propietario</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
       </div>
     </div>
+    <!-- Slot para los TodoItem -->
     <slot></slot>
 
     <v-btn
@@ -64,12 +77,14 @@
     </v-btn>
 
     <div class="item-composer" v-show="!hideAddTodoComposer">
-      <textarea
-        placeholder="Introduzca un título para esta tarea..."
-        autofocus
+      <v-textarea
         v-model="newItemTitle"
         @keydown.enter.exact.prevent="addNewItem()"
-      ></textarea>
+        placeholder="Introduzca un título para esta tarea..."
+        autofocus
+        :dark="this.$store.state.darkTheme"
+      >
+      </v-textarea>
       <div class="new-item-options">
         <v-btn @click="addNewItem()" small color="primary">Añadir tarea</v-btn>
         <button @click="hideAddTodoComposer = true">
@@ -77,14 +92,19 @@
         </button>
       </div>
     </div>
-    <!-- TODO Crear una transición -->
   </div>
 </template>
 
 <script>
-import { addTodoItems, deleteList, editList } from '@/api.js';
+import { addTodoItems, deleteList, patchList, deleteTodo } from '@/api/api';
+import ListOwnerChangeOverlay from './ListOwnerChangeOverlay.vue';
+import ListBoardChangeOverlay from './ListBoardChangeOverlay.vue';
 export default {
   name: 'TodoList',
+  components: {
+    ListBoardChangeOverlay,
+    ListOwnerChangeOverlay,
+  },
   props: {
     todos: {
       type: Array,
@@ -108,13 +128,19 @@ export default {
       editNameComposer: false,
       newItemTitle: '',
       hideAddTodoComposer: true,
-      isActionOpen: false,
       listName: this.name,
+      hasListNameChanged: false,
+      changeOwnerOverlay: false,
     };
   },
   computed: {
     boardID() {
-      return this.$store.getters.getBoardByName(this.$parent.id)._id;
+      return this.$store.getters.getBoardByName(this.$parent.name)._id;
+    },
+  },
+  watch: {
+    listName() {
+      this.hasListNameChanged = true;
     },
   },
   methods: {
@@ -126,19 +152,17 @@ export default {
         title: this.newItemTitle.trim(),
         id: this.autoIncrementID(),
         index: this.autoIncrementIndex(),
+        description: '',
       };
 
       await addTodoItems(this.boardID, this.id, [todoItem])
         .then(response => {
-          if (response.status === 400) {
-            return console.log('No se ha podido añadir todo a la lista');
-          }
-          if (response.status === 201) {
-            this.$store.dispatch('fetchBoards');
-          }
+          if (response.status === 400) return;
+
+          if (response.status === 201) this.$store.dispatch('fetchBoards');
         })
         .catch(error => {
-          console.error(error.message, error);
+          console.error(error.message);
         });
 
       this.newItemTitle = '';
@@ -147,7 +171,8 @@ export default {
       deleteList(this.boardID, this.id)
         .then(response => {
           if (response.status === 400) {
-            return console.log('No se ha podido eliminar la lista');
+            console.error(response.error);
+            return;
           }
           if (response.status === 200) {
             this.$store.dispatch('fetchBoards');
@@ -156,39 +181,84 @@ export default {
         .catch(error => console.error(error));
     },
     editListName() {
-      editList(this.boardID, this.id, undefined, this.listName.trim())
-        .then(response => {
-          if (response.status === 400) {
-            return console.log('No se ha podido editar la lista');
-          }
-          if (response.status === 201) {
-            this.$store.dispatch('fetchBoards');
-          }
-          this.editNameComposer = false;
-        })
-        .catch(error => console.error(error.message));
+      this.editNameComposer = false;
+      if (this.hasListNameChanged) {
+        this.hasListNameChanged = false;
+        patchList(this.boardID, this.id, { name: this.listName.trim() })
+          .then(response => {
+            if (response.status === 200) this.$store.dispatch('fetchBoards');
+            if (response.status === 400) return;
+          })
+          .catch(error => console.error(error.message));
+      }
+      this.hasListNameChanged = false;
     },
     onDragStart(ev) {
+      ev.dataTransfer.setData(
+        'list-data',
+        JSON.stringify({
+          index: this.index,
+          id: this.id,
+        })
+      );
       ev.dataTransfer.dropEffect = 'move';
       ev.dataTransfer.effectAllowed = 'move';
-      ev.dataTransfer.setData('list-index', this.index);
-      ev.dataTransfer.setData('list-id', this.id);
     },
     async onDrop(ev) {
-      let listIndex = ev.dataTransfer.getData('list-index');
-      let listID = ev.dataTransfer.getData('list-id');
+      // Drag&Drop de TodoList
+      if (ev.dataTransfer.getData('list-data')) {
+        const { index: listIndex, id: listID } = JSON.parse(
+          ev.dataTransfer.getData('list-data')
+        );
 
-      // Si el ID es el mismo es que han dropeado la lista en su misma posición; no hacemos nada
-      if (this.id == listID) {
-        return;
+        const isSameList = this.id == listID;
+        if (isSameList) return;
+
+        const firstRequest = patchList(this.boardID, parseInt(listID), {
+          index: this.index,
+        });
+        const secondRequest = patchList(this.boardID, this.id, {
+          index: parseInt(listIndex),
+        });
+
+        await Promise.all([firstRequest, secondRequest])
+          .then(res => {
+            if (res[0].status === 200 && res[1].status === 200)
+              this.$store.dispatch('fetchBoards');
+          })
+          .catch(error => console.error(error));
       }
 
-      let firstRequest = editList(this.boardID, parseInt(listID), this.index);
-      let secondRequest = editList(this.boardID, this.id, parseInt(listIndex));
+      // Drag&Drop de TodoItem. En caso de que no haya otros items en la lista, sin esto no se podría dropear
+      if (ev.dataTransfer.getData('todo-data')) {
+        const {
+          id: draggedItemID,
+          parentID: draggedItemParentID,
+          title: draggedItemTitle,
+          description: draggedItemDescription,
+        } = JSON.parse(ev.dataTransfer.getData('todo-data'));
 
-      // TODO Controlar las excepciones
-      await Promise.all([firstRequest, secondRequest]);
-      this.$store.dispatch('fetchBoards');
+        if (draggedItemParentID === this.id) return;
+        const todoItem = {
+          title: draggedItemTitle,
+          id: this.autoIncrementID(),
+          index: this.autoIncrementIndex(),
+          description: draggedItemDescription,
+        };
+        console.log(todoItem);
+
+        await addTodoItems(this.boardID, this.id, [todoItem]).catch(error =>
+          console.error(error)
+        );
+
+        await deleteTodo(
+          this.boardID,
+          parseInt(draggedItemParentID),
+          parseInt(draggedItemID)
+        ).catch(error => console.error(error));
+
+        return this.$store.dispatch('fetchBoards');
+      }
     },
     autoIncrementID() {
       let maxID =
@@ -211,13 +281,12 @@ export default {
 </script>
 
 <style lang="scss">
-//Contenedor principal de cada lista de tareas
 #todo-list-container {
   display: flex;
   flex-flow: column nowrap;
   justify-content: flex-start;
 
-  width: $--todo-container-width;
+  min-width: $--todo-container-width;
   min-height: $--todo-container-height;
 
   background: var(--surface2);
@@ -239,7 +308,7 @@ export default {
       overflow-wrap: break-word;
 
       margin-right: auto;
-      padding: 4px 8px;
+      padding: 4px 6px;
     }
 
     .list-header-extras {
@@ -295,7 +364,6 @@ export default {
     margin-bottom: 1rem;
 
     &:hover {
-      // background: darken($--todo-bg-color, 6);
       background: var(--surface4);
     }
 

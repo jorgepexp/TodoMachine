@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import session from 'express-session';
+// import session from 'express-session';
 
 const SETTINGS = config();
 
@@ -23,25 +23,14 @@ export default app => {
   //Manejo de cookies
   app.use(cookieParser());
 
-  //Control de sesión
-  app.use(
-    session({
-      secret: 'SeCreto-dI-lA-mamMa',
-      resave: false,
-      saveUninitialized: true,
-      cookie: {
-        secure: app.locals.env !== 'development',
-        sameSite: app.locals.env === 'development',
-        httpOnly: true,
-        maxAge: 60000,
-      },
-      unset: 'destroy',
-    })
-  );
-
   //Configuramos CORS
   const corsConfig = {
-    origin: ['http://localhost:8080', 'https://localhost:8080'],
+    origin: [
+      'http://localhost:8080',
+      'https://localhost:8080',
+      'http://localhost:3000',
+      'https://localhost:3000',
+    ],
     credentials: true,
   };
   app.use(cors(corsConfig));

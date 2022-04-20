@@ -1,45 +1,75 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import { getUserByUsername } from '@/api/api';
+import store from '@/store/index.js';
 
 Vue.use(VueRouter);
 
 const routes = [
   {
     path: '/',
-    redirect: 'todomachine',
+    redirect: { name: 'home' },
   },
-
   {
     path: '/todomachine',
-    name: 'todomachine',
-    component: () => import('../views/HomeView.vue'),
+    name: 'home',
+
+    component: () =>
+      import(/*webpackChunkName: "HomeView"*/ '../views/HomeView.vue'),
+    // * Hook de ruta. Si el usuario está logeado redirigimos desde Home hacia sus tableros
+    beforeEnter: (to, from, next) => {
+      if (store.state.user.loggedIn) {
+        next({
+          name: 'mainBoard',
+          params: { username: store.state.user.username },
+        });
+      } else {
+        next();
+      }
+    },
   },
   {
     path: '/todomachine/login',
     name: 'login',
-    component: () => import('../components/LoginForm.vue'),
+    component: () =>
+      import(/*webpackChunkName: "LoginView"*/ '../views/LoginView.vue'),
+    props: true,
   },
   {
     path: '/todomachine/registro',
-    component: () => import('../components/RegisterForm.vue'),
+    name: 'register',
+    component: () =>
+      import(/*webpackChunkName: "RegisterView"*/ '../views/RegisterView.vue'),
   },
   {
-    path: '/todomachine/:username/:id',
+    path: '/todomachine/:username/:name',
     name: 'board',
-    component: () => import('../components/Board.vue'),
+    component: () =>
+      import(/*webpackChunkName: "CurrentBoard"*/ '../views/UserBoardView.vue'),
     props: true,
   },
   {
     path: '/todomachine/:username',
     name: 'mainBoard',
-    component: () => import('../views/UserBoardView.vue'),
-    props: true,
+    component: () =>
+      import(/*webpackChunkName: "AllBoards"*/ '../views/AllBoardsView.vue'),
     meta: {
       requiredAuth: true,
+    },
+    beforeEnter: (to, from, next) => {
+      // TODO Esto quizá hay que plantearlo de otra forma para que no realice una petición cada vez (aunque los datos no hayan cambiado)
+      getUserByUsername(to.params.username).then(response => {
+        if (response.data?.users?.length) {
+          next();
+        } else {
+          next({ name: '404' });
+        }
+      });
     },
   },
   {
     path: '*',
+    name: '404',
     component: () => import('../views/NotFoundView.vue'),
   },
 ];

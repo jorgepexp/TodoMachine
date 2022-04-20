@@ -1,23 +1,24 @@
 import usersDAO from '../dao/usersDAO.js';
-import { generateAccessToken } from '../auth/authorization.js';
+import { generateAccessToken, generateRefreshToken } from './auth.js';
 import bcrypt from 'bcrypt';
-import dayjs from 'dayjs';
 
 class UserController {
   async getUsers(req, res) {
-    // Comprobamos los parámetros que nos han pasado en la llamada a la API
     const usersPerPage = req.query.usersPerPage
       ? parseInt(req.query.usersPerPage, 10)
       : 20;
     const page = req.query.page ? parseInt(req.query.page, 10) : 0;
-
     let filters = {};
     if (req.query.username) filters.username = req.query.username;
     else if (req.query.id) filters.id = req.query.id;
-    else if (req.query.email) filters.email = req.query.email;
     else if (req.query.name) filters.name = req.query.name;
+    else if (req.query.refreshToken)
+      filters.refreshToken = req.query.refreshToken;
 
     let users = await usersDAO.getUsers({ filters, page, usersPerPage });
+    //* Retiramos la contraseña de la respuesta
+    users ?? [...users, (users[0].password = '')];
+
     let response = {
       users,
       page,
@@ -28,33 +29,39 @@ class UserController {
     return res.status(200).json(response);
   }
 
+  // Método de registro de usuario
   async addUser(req, res) {
     try {
-      let userData = {};
-      // Conseguimos el usuario y la contraseña de la petición
       const { username, password } = req.body;
-      if (!username || !password) {
-        return res.status(403).json({
-          error: 'Datos incompletos',
+      if (!username || !password) return res.sendStatus(400);
+
+      const hashedPassword = await bcrypt.hash(password, parseInt(11));
+      const accessToken = generateAccessToken({ username });
+      const refreshToken = generateRefreshToken({ username });
+
+      const result = await usersDAO.addUser(
+        username,
+        hashedPassword,
+        refreshToken
+      );
+
+      if (result.insertedCount === 0) {
+        return res.status(400).json({
+          message: 'El nombre de usuario ya está siendo utilizado',
+          error: true,
         });
       }
 
-      // Encriptamos la contraseña
-      let hashedPassword = await bcrypt.hash(password, 10);
-      userData.username = username;
-      userData.password = hashedPassword;
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        sameSite: process.env.NODE_ENV !== 'development' ? 'None' : 'Lax',
+        secure: process.env.NODE_ENV !== 'development',
+      });
 
-      // TODO No enviar la contraseña de vuelta
-      let user = await usersDAO.addUser(userData);
-      if (!user.length) {
-        return res.status(403).json({
-          error: 'El nombre de usuario ya está siendo utilizado',
-        });
-      }
-      const token = generateAccessToken(username);
-      let response = {
-        user,
-        token,
+      const response = {
+        id: result.insertedId,
+        accessToken,
       };
 
       return res.status(200).json(response);
@@ -63,66 +70,81 @@ class UserController {
     }
   }
 
-  async login(req, res) {
+  async patchUser(req, res) {
+    const { filters, document } = req.body;
+    if (!filters || !document) return res.sendStatus(400);
+
+    let modifiedCount = await usersDAO.patchUser(filters, document);
+
+    if (modifiedCount === 0) return res.sendStatus(400);
+
+    return res.sendStatus(200);
+  }
+
+  async handleLogin(req, res) {
     try {
-      let filters = {};
-      // TODO Poder hacer login también con el email
       const { username, password } = req.body;
+      if (!username || !password) return res.sendStatus(400);
 
-      if (!username || !password)
-        throw new Error('username o password undefined');
-
-      filters.username = username;
-
+      const filters = { username };
       const user = await usersDAO.getUsers({ filters });
-      if (!user.length) {
-        return res
-          .status(403)
-          .send({ message: 'Información de login incorrecta' });
-      }
 
-      const validPassword = await bcrypt.compare(password, user[0].password);
-      if (!validPassword) {
-        return res
-          .status(403)
-          .send({ message: 'Información de login incorrecta' });
-      }
+      if (!user.length) return res.sendStatus(401);
 
-      req.session.authenticated = true;
-      req.session.username = username;
-      const token = generateAccessToken(username);
+      if (!(await bcrypt.compare(password, user[0].password)))
+        return res.sendStatus(401);
 
-      // res.cookie('access_token', JSON.stringify(token), {
-      // 	secure: process.env.NODE_ENV !== 'development',
-      // 	httpOnly: true,
-      // 	sameSite: true,
-      // 	expires: dayjs().add(30, 'days').toDate(),
-      // });
+      const accessToken = generateAccessToken({ username: user[0].username });
+      const refreshToken = generateRefreshToken({ username: user[0].username });
 
-      return res.status(200).json({
-        username,
-        id: user[0]._id,
-        token,
-        error: null,
+      // * Introducimos el nuevo token en BD
+      const filtros = { username };
+      const document = { refreshToken };
+      await usersDAO.patchUser(filtros, document);
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        sameSite: process.env.NODE_ENV !== 'development' ? 'None' : 'Lax',
+        secure: process.env.NODE_ENV !== 'development',
       });
+      res.status(200).json({ accessToken, id: user[0]._id });
     } catch (error) {
-      return res.status(500).send({ error: error.message });
+      return res.status(500).send({ message: error.message });
     }
   }
 
-  async logout(req, res) {
-    //Expiramos el JWT y destruimos las sesiones activas
-    // res.cookie('access_token', {
-    // 	expires: new Date('01-01-1970').toISOString(),
-    // });
-    // res.clearCookie('access_token');
-    req.session.destroy();
-    return res.status(200).send('Logout correcto');
-  }
+  async handleLogout(req, res) {
+    //? Remember to delete accessToken in the client
+    const cookies = req.cookies;
+    if (!cookies?.refreshToken) return res.sendStatus(204);
+    const refreshToken = cookies.refreshToken;
 
-  // editUserById(req, res) {
-  // 	return res.status(200).json({ key: `put ${req.params.id}` });
-  // }
+    //* Buscamos el token en BD
+    const filters = { filters: { refreshToken } };
+    const result = await usersDAO.getUsers(filters);
+    const foundUserToken = result[0]?.refreshToken;
+
+    //* Eliminamos el token si se encuentra en la BD
+    if (foundUserToken === refreshToken) {
+      const document = { refreshToken: '' };
+      await usersDAO.patchUser({ refreshToken }, document);
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        sameSite: 'None',
+        secure: process.env.NODE_ENV !== 'development',
+      });
+      return res.sendStatus(204);
+    }
+
+    //* Si no se encuentra, simplemente eliminamos la cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      sameSite: 'None',
+      secure: process.env.NODE_ENV !== 'development',
+    });
+    return res.sendStatus(204);
+  }
 }
 
 export default new UserController();

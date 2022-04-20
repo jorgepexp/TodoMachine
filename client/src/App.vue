@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app id="app">
     <TheNavigation />
     <v-main>
       <router-view />
@@ -32,11 +32,6 @@ export default {
 </script>
 
 <style lang="scss">
-// .v-main__wrap {
-//   height: 100%;
-//   aspect-ratio: 1;
-// }
-
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.5s;
