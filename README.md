@@ -42,10 +42,6 @@ Aplicación de tareas, ordenadas mediante listas y tableros al estilo Trello.
 - Hace uso de CSS custom variables para cambiar entre tema claro y oscuro.
 - Responsive.
 
-## Demo
-
-[Para hacer](https://google.com)
-
 ## Construido con
 
 - [Vuex](https://vuex.vuejs.org/) - Vue State Managment
@@ -58,14 +54,17 @@ Aplicación de tareas, ordenadas mediante listas y tableros al estilo Trello.
 
 ## Ejemplos de uso
 
-- Creando un tablero
-  ![Captura de pantalla- Tablero creado][product-screenshot1]
-- Añadir items a la lista
-  ![Captura de pantalla- Añadiendo items a las listas][product-screenshot2]
-- Cambiar propietario del tablero
-  ![Captura de pantalla- Cambiar propietario del tablero][product-screenshot3]
-- Modo oscuro
-  ![Captura de pantalla- Modo oscuro][product-screenshot4]
+**Creando un tablero**
+
+<img src="client/src/assets/img/captura-create-board.jpg" alt="Captura de pantalla- Tablero creado" width="500" />
+  
+**Añadiendo items a una lista**
+
+<img src="client/src/assets/img/captura-todolist.jpg" alt="Captura de pantalla- Añadiendo items a las listas" width="500" />
+
+**Cambiando propietario de una lista. Modo oscuro**
+
+<img src="client/src/assets/img/captura-change-owner.jpg" alt="Captura de pantalla- Cambiar propietario de una lista" width="500" />
 
 <p align="right">(<a href="#top">vuelta arriba</a>)</p>
 
@@ -126,7 +125,6 @@ Si encuentras algún bug en la aplicación o simplemente quieres sugerir alguna 
 
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/jorge-perez-exposito
-[product-screenshot]: src/assets/imagen.png
-[product-screenshot1]: src/assets/img/captura-create-owner.png
-[product-screenshot2]: src/assets/img/captura-change-owner.png
-[product-screenshot3]: src/assets/img/captura-todolist.png
+[product-screenshot]: client/src/assets/img/captura-create-board.jpg
+[product-screenshot1]: client/src/assets/img/captura-todolist.jpg
+[product-screenshot2]: client/src/assets/img/captura-change-owner.jpg
